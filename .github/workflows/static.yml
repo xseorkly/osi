@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olympiades des Sciences de l'Ingénieur - Collège</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .top-banner {
+            background: linear-gradient(to right, #1a1a2e, #16213e, #0f3460);
+            padding: 15px 0;
+            border-bottom: 3px solid #00d4ff;
+        }
+
+        .logos-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo-item {
+            height: 80px;
+            width: auto;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+
+        .logo-item:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-aefe-main {
+            height: 100px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #00ffcc;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            color: #00d4ff;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3em;
+            color: #00ffcc;
+            margin-bottom: 30px;
+        }
+
+        .hero-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 30px 0;
+            animation: fadeIn 1.5s;
+        }
+
+        section {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
+            margin: 30px 0;
+            padding: 50px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.1);
+        }
+
+        section h2 {
+            font-size: 2em;
+            color: #0f3460;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .theme-box {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .theme-box h3 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .theme-box p {
+            font-size: 1.2em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #00d4ff;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.1);
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .info-card h3 {
+            color: #0f3460;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-card li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .info-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .evaluation-section {
+            background: linear-gradient(135deg, #f8fbff 0%, #e8f4f8 100%);
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .evaluation-axis {
+            margin: 30px 0;
+        }
+
+        .axis-header {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(15, 52, 96, 0.3);
+        }
+
+        .axis-header h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .criteria-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .criterion {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #00d4ff;
+            box-shadow: 0 2px 5px rgba(0, 212, 255, 0.1);
+        }
+
+        .criterion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .criterion-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .coefficient {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .criterion-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .deadline-box {
+            background: linear-gradient(135deg, #ff006e 0%, #fb5607 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin: 30px 0;
+            box-shadow: 0 5px 20px rgba(255, 0, 110, 0.4);
+        }
+
+        footer {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+
+        .scale-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .scale-table th,
+        .scale-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .scale-table th {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: white;
+        }
+
+        .scale-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.8em;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .logo-item {
+                height: 60px;
+            }
+
+            .logo-aefe-main {
+                height: 80px;
+            }
+
+            .logos-container {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-banner">
+        <div class="logos-container">
+            <img src="https://imgur.com/yli5tGD.png" alt="AEFE" class="logo-item logo-aefe-main">
+            <img src="https://imgur.com/1SRl53m.png" alt="IRF Europe Centrale et Orientale" class="logo-item">
+            <img src="https://imgur.com/xKf3PGt.png" alt="IRF Europe Ibérique" class="logo-item">
+            <img src="https://imgur.com/aGMldN2.png" alt="IRF Europe du Nord-Ouest et Scandinave" class="logo-item">
+            <img src="https://imgur.com/aGMldN2.png" alt="IRF Europe du Sud Est" class="logo-item">
+        </div>
+    </div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h2 style="color: #00d4ff;">Olympiades des Sciences de l'Ingénieur</h2>
+                    <p style="color: #00ffcc;">Zones ZESE - ZECO - ZENOS - ZEI</p>
+                </div>
+                <nav>
+                    <a href="#presentation">Présentation</a>
+                    <a href="#modalites">Modalités</a>
+                    <a href="#evaluation">Évaluation</a>
+                    <a href="#ressources">Ressources</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Olympiades des Sciences de l'Ingénieur - Collège</h1>
+            <p class="hero-subtitle">Un concours pédagogique innovant pour les élèves de 4ème et 3ème</p>
+            <img src="https://imgur.com/vkfqCYU.jpeg" alt="Infographie OSI" class="hero-image">
+        </div>
+    </section>
+
+    <section id="presentation">
+        <div class="container">
+            <h2>Pourquoi les Olympiades ?</h2>
+            
+            <div class="theme-box">
+                <h3>🏙️ THÈME COMMUN</h3>
+                <h3>"Mieux vivre la ville"</h3>
+                <p>Imaginez une solution innovante pour améliorer la qualité de vie en milieu urbain : mobilité, environnement, accessibilité, bien-être, vivre-ensemble...</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🎯 Objectifs</h3>
+                    <ul>
+                        <li>Mise en œuvre concrète des nouveaux programmes</li>
+                        <li>Démarche de projet motivante</li>
+                        <li>Innovation et créativité valorisées</li>
+                        <li>Travail collaboratif entre enseignants</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>👥 Public concerné</h3>
+                    <ul>
+                        <li>Élèves de 4ème et 3ème</li>
+                        <li>Équipes de 2 à 4 élèves</li>
+                        <li>Mixité filles-garçons obligatoire</li>
+                        <li>Encadrement par professeur de technologie</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>📚 Démarche pédagogique</h3>
+                    <ul>
+                        <li>5 séquences pédagogiques complètes</li>
+                        <li>Couvre 80% du programme de technologie</li>
+                        <li>Kit pédagogique sur l'espace Orion</li>
+                        <li>Communauté professionnelle active</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modalites">
+        <div class="container">
+            <h2>Modalités du Concours</h2>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⏱️ Durée</h3>
+                    <p><strong>6 à 8 semaines maximum</strong></p>
+                    <p>Le projet s'intègre dans la progression annuelle de technologie</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>🎥 Production attendue</h3>
+                    <p><strong>Une vidéo de 75 à 90 secondes</strong></p>
+                    <ul>
+                        <li>La problématique choisie</li>
+                        <li>La solution proposée</li>
+                        <li>La démarche de projet</li>
+                        <li>Les choix créatifs et techniques</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>📤 Sélection</h3>
+                    <p>Chaque établissement effectue une sélection interne</p>
+                    <p><strong>3 à 4 vidéos maximum par établissement</strong></p>
+                </div>
+            </div>
+
+            <div class="deadline-box">
+                ⏰ DATE LIMITE DE DÉPÔT DES VIDÉOS : 15 MAI 2026
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="font-size: 1.1em; color: #666; margin-bottom: 15px;">
+                    <strong>Important :</strong> L'objectif n'est pas de fabriquer un objet réel fonctionnel, mais de proposer une idée innovante avec une démarche de projet complète.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="evaluation">
+        <div class="container">
+            <h2>Critères d'Évaluation</h2>
+            
+            <p style="text-align: center; margin-bottom: 30px; font-size: 1.1em;">
+                Chaque projet est évalué selon une grille de notation sur <strong>100 points</strong>, répartis en 3 axes principaux.
+            </p>
+
+            <div class="evaluation-section">
+                <div class="evaluation-axis">
+                    <div class="axis-header">
+                        <h3>🔧 AXE 1 - Démarche d'ingénierie</h3>
+                        <p>40% de la note finale</p>
+                    </div>
+                    <div class="criteria-grid">
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">1. Compréhension du problème</span>
+                                <span class="coefficient">Coef. 1.5</span>
+                            </div>
+                            <p class="criterion-description">Identification claire du besoin et définition des fonctions principales (cahier des charges simple).</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">2. Démarche d'ingénierie et de projet</span>
+                                <span class="coefficient">Coef. 2</span>
+                            </div>
+                            <p class="criterion-description">Méthode de travail structurée (recherche, tests, améliorations) et organisation efficace de l'équipe.</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">3. Pertinence de la solution technique</span>
+                                <span class="coefficient">Coef. 2</span>
+                            </div>
+                            <p class="criterion-description">Solution réaliste, réalisable et fonctionnelle, répondant aux besoins identifiés.</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">4. Justification des choix techniques</span>
+                                <span class="coefficient">Coef. 1.5</span>
+                            </div>
+                            <p class="criterion-description">Explication de la logique derrière les choix de composants, matériaux et solutions.</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">5. Mobilisation des sciences et de la technologie</span>
+                                <span class="coefficient">Coef. 1</span>
+                            </div>
+                            <p class="criterion-description">Application pertinente des concepts scientifiques et technologiques du programme.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="evaluation-axis">
+                    <div class="axis-header">
+                        <h3>💡 AXE 2 - Sens, valeurs et impact</h3>
+                        <p>25% de la note finale</p>
+                    </div>
+                    <div class="criteria-grid">
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">6. Dimension humaine, éthique ou sociétale</span>
+                                <span class="coefficient">Coef. 2</span>
+                            </div>
+                            <p class="criterion-description">Réflexion sur l'utilisateur final et considération de l'impact éthique ou sociétal.</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">7. Impact et utilité du projet</span>
+                                <span class="coefficient">Coef. 1.5</span>
+                            </div>
+                            <p class="criterion-description">Démonstration de la valeur ajoutée et de l'utilité réelle de la solution.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="evaluation-axis">
+                    <div class="axis-header">
+                        <h3>🎬 AXE 3 - Communication et qualité de la vidéo</h3>
+                        <p>35% de la note finale</p>
+                    </div>
+                    <div class="criteria-grid">
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">8. Clarté et structuration de la vidéo</span>
+                                <span class="coefficient">Coef. 2</span>
+                            </div>
+                            <p class="criterion-description">Plan logique et facile à suivre, qualité de réalisation soignée (montage, son, éclairage).</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">9. Qualité de la communication orale</span>
+                                <span class="coefficient">Coef. 1.5</span>
+                            </div>
+                            <p class="criterion-description">Expression claire, dynamique et bien rythmée. Participation de tous les membres.</p>
+                        </div>
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <span class="criterion-title">10. Qualité des supports visuels et démonstrations</span>
+                                <span class="coefficient">Coef. 1.5</span>
+                            </div>
+                            <p class="criterion-description">Supports visuels clairs et démonstration efficace du prototype ou de la maquette.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin-top: 30px; border-left: 5px solid #ffc107;">
+                    <h4 style="color: #856404; margin-bottom: 10px;">⭐ Mention spéciale</h4>
+                    <p style="color: #856404;">Un "Coup de cœur du jury" peut être attribué pour un aspect particulièrement remarquable en Innovation, Valeurs ou Communication.</p>
+                </div>
+
+                <h3 style="margin-top: 40px; color: #0f3460;">Échelle de notation</h3>
+                <table class="scale-table">
+                    <thead>
+                        <tr>
+                            <th>Note</th>
+                            <th>Appréciation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>Excellent</td>
+                        </tr>
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>Très satisfaisant</td>
+                        </tr>
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>Satisfaisant</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>Insuffisant</td>
+                        </tr>
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>Très insuffisant</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="ressources">
+        <div class="container">
+            <h2>Ressources Pédagogiques</h2>
+            
+            <div style="text-align: center; margin: 40px 0;">
+                <p style="font-size: 1.2em; margin-bottom: 30px;">
+                    Accédez à l'ensemble des ressources pédagogiques pour mettre en œuvre le concours :
+                </p>
+                <ul style="list-style: none; padding: 0; margin: 30px 0;">
+                    <li style="padding: 10px 0;">✓ 5 séquences pédagogiques complètes</li>
+                    <li style="padding: 10px 0;">✓ Séquences de prise en main (primo)</li>
+                    <li style="padding: 10px 0;">✓ Outils méthodologiques</li>
+                    <li style="padding: 10px 0;">✓ Grilles d'évaluation</li>
+                </ul>
+                <a href="https://drive.google.com/drive/folders/1ugHHcRlR3puHSwboMTBGrqiSlpnbTyac?usp=drive_link" target="_blank" class="cta-button">
+                    📁 Accéder aux ressources
+                </a>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🤝 Accompagnement</h3>
+                    <ul>
+                        <li>Communauté professionnelle active</li>
+                        <li>Temps de visio réguliers</li>
+                        <li>Échanges entre pairs</li>
+                        <li>Support continu</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>🎓 Pour les enseignants</h3>
+                    <ul>
+                        <li>Cadre structurant et souple</li>
+                        <li>Ressources mutualisées</li>
+                        <li>Travail en réseau valorisant</li>
+                        <li>Co-construction collective</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>🌟 Pour les élèves</h3>
+                    <ul>
+                        <li>Projet motivant et valorisant</li>
+                        <li>Développement de compétences clés</li>
+                        <li>Esprit d'initiative et créativité</li>
+                        <li>Travail collaboratif authentique</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Olympiades des Sciences de l'Ingénieur - Collège</p>
+            <p>AEFE - Zones ZESE, ZECO, ZENOS, ZEI</p>
+        </div>
+    </footer>
+</body>
+</html>
