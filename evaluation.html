@@ -699,6 +699,10 @@
             <button type="button" class="btn" id="generateBtn" disabled>
                 📄 Générer le PDF et Enregistrer
             </button>
+
+            <button type="button" class="btn" id="resetBtn" style="background: linear-gradient(135deg, #ff006e 0%, #ff4d6d 100%); color: white; margin-top: 10px; display: none;">
+                🔄 Nouvelle Évaluation
+            </button>
         </form>
     </div>
 
@@ -1244,11 +1248,65 @@
                 setTimeout(() => {
                     document.getElementById('successMessage').style.display = 'none';
                 }, 5000);
+
+                // Show reset button
+                document.getElementById('resetBtn').style.display = 'block';
+
             } catch (error) {
                 console.error('Erreur:', error);
                 document.getElementById('errorMessage').textContent = '❌ Erreur lors de la génération du PDF: ' + error.message;
                 document.getElementById('errorMessage').style.display = 'block';
             }
+        });
+
+        // Reset everything for a new evaluation
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            if (!confirm('🔄 Remettre tout à zéro pour une nouvelle évaluation ?')) return;
+
+            // Reset form fields
+            document.getElementById('evaluationForm').reset();
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDescription').value = '';
+            document.getElementById('schoolName').value = '';
+            document.getElementById('teacherName').value = '';
+            document.getElementById('classLevel').value = '';
+            document.getElementById('otherClassGroup').style.display = 'none';
+
+            // Clear dynamic student/jury fields
+            document.getElementById('studentsFields').innerHTML = '';
+            document.getElementById('studentsFields').classList.remove('active');
+            document.getElementById('juryFields').innerHTML = '';
+            document.getElementById('juryFields').classList.remove('active');
+
+            // Reset all ratings
+            Object.keys(ratings).forEach(key => delete ratings[key]);
+            document.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('selected'));
+
+            // Reset score
+            document.getElementById('scoreDisplay').style.display = 'none';
+            document.getElementById('finalScore').textContent = '-- / 100';
+
+            // Reset video upload
+            selectedFile = null;
+            uploadedVideoUrl = '';
+            document.getElementById('fileInfo').classList.remove('active');
+            document.getElementById('uploadProgress').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressFill').textContent = '0%';
+            document.getElementById('progressText').textContent = '';
+            document.getElementById('uploadStatus').textContent = '';
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('fileSize').textContent = '';
+            document.getElementById('fileInput').value = '';
+
+            // Reset messages and buttons
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('resetBtn').style.display = 'none';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         // Upload PDF to Google Drive
