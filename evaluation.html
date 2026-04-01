@@ -700,7 +700,7 @@
                 📄 Générer le PDF et Enregistrer
             </button>
 
-            <button type="button" class="btn" id="resetBtn" style="background: linear-gradient(135deg, #ff006e 0%, #ff4d6d 100%); color: white; margin-top: 10px; display: none;">
+            <button type="button" class="btn" id="resetBtn" style="background: linear-gradient(135deg, #ff006e 0%, #ff4d6d 100%); color: white; margin-top: 10px;">
                 🔄 Nouvelle Évaluation
             </button>
         </form>
@@ -1249,9 +1249,6 @@
                     document.getElementById('successMessage').style.display = 'none';
                 }, 5000);
 
-                // Show reset button
-                document.getElementById('resetBtn').style.display = 'block';
-
             } catch (error) {
                 console.error('Erreur:', error);
                 document.getElementById('errorMessage').textContent = '❌ Erreur lors de la génération du PDF: ' + error.message;
@@ -1303,7 +1300,6 @@
             document.getElementById('successMessage').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('generateBtn').disabled = true;
-            document.getElementById('resetBtn').style.display = 'none';
 
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
