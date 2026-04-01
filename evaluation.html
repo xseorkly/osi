@@ -493,6 +493,11 @@
             <div class="section">
                 <h2 class="section-title">📹 Upload de la Vidéo</h2>
 
+                <button type="button" id="authorizeBtn" onclick="handleAuthClick()" style="background: white; color: #0f3460; padding: 12px 30px; border: 2px solid #00d4ff; border-radius: 25px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px; transition: all 0.3s;">
+                    🔐 Se connecter avec Google (n'importe quel compte)
+                </button>
+                <p style="color: #666; font-size: 0.85em; margin-bottom: 15px;">Connectez-vous avec n'importe quel compte Google pour uploader la vidéo.</p>
+
                 <div class="upload-section">
                     <div class="upload-zone" id="uploadZone">
                         <div class="upload-icon">📁</div>
@@ -699,33 +704,64 @@
 
     <script>
         // ===== CONFIGURATION =====
-        // IMPORTANT: Remplace cette URL par l'URL de ton Google Apps Script déployé
+        const CLIENT_ID = '643447633657-r3os1hvv2ta75batvjid2ngs840nodp0.apps.googleusercontent.com';
+        const FOLDER_ID = '1l7bP0RTCAPICrpHLl8BqjqR9uYv5ppfy';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyO9ZT55TXCjc2Xy-vTBO6RMq5doHpi3rYPW4h5UHEylYWQ7BWb5Hk9GAmzVpsWmCkA8A/exec';
 
+        let tokenClient;
+        let gisInited = false;
         let uploadedVideoUrl = '';
         let selectedFile = null;
+        let accessToken = null;
 
-        // Helper: POST to Apps Script (handles CORS redirects)
-        function postToAppsScript(payload) {
-            return new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', APPS_SCRIPT_URL);
-                xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-                xhr.onload = function() {
-                    try {
-                        const result = JSON.parse(xhr.responseText);
-                        resolve(result);
-                    } catch (e) {
-                        // Apps Script sometimes returns HTML on error
-                        reject(new Error('Réponse invalide du serveur'));
-                    }
-                };
-                xhr.onerror = function() {
-                    reject(new Error('Erreur réseau'));
-                };
-                xhr.send(JSON.stringify(payload));
-            });
+        // Google Identity Services init
+        function gisLoaded() {
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: '',
+                });
+                gisInited = true;
+                console.log('Google Identity Services ready');
+            } catch (error) {
+                console.error('GIS init error:', error);
+            }
         }
+
+        // Auth click
+        function handleAuthClick() {
+            if (!tokenClient) {
+                alert('❌ Le service Google ne s\'est pas chargé.\nDésactivez votre bloqueur de pubs puis rechargez.');
+                return;
+            }
+            tokenClient.callback = async (resp) => {
+                if (resp.error) {
+                    alert('❌ Erreur d\'authentification : ' + resp.error);
+                    return;
+                }
+                accessToken = resp.access_token;
+                document.getElementById('authorizeBtn').textContent = '✅ Connecté à Google';
+                document.getElementById('authorizeBtn').style.background = '#00ffcc';
+                document.getElementById('authorizeBtn').style.color = '#0f3460';
+                // Auto-upload if file selected
+                if (selectedFile) {
+                    uploadFileToDrive();
+                }
+            };
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        }
+
+        // Load GIS script dynamically
+        function loadGIS() {
+            const s = document.createElement('script');
+            s.src = 'https://accounts.google.com/gsi/client';
+            s.onload = gisLoaded;
+            s.onerror = () => console.warn('GIS script failed to load');
+            document.head.appendChild(s);
+        }
+        loadGIS();
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
@@ -761,15 +797,8 @@
         });
 
         function handleFileSelect(file) {
-            // Validate file
             if (!file.type.startsWith('video/')) {
                 alert('❌ Veuillez sélectionner un fichier vidéo.');
-                return;
-            }
-
-            // Check file size (50MB max for Apps Script)
-            if (file.size > 50 * 1024 * 1024) {
-                alert('❌ Le fichier est trop volumineux (max 50 MB).');
                 return;
             }
 
@@ -777,21 +806,16 @@
             fileName.textContent = file.name;
             fileSize.textContent = `Taille : ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
             fileInfo.classList.add('active');
-            
-            // Auto-upload immediately — no Google sign-in needed!
-            uploadFileToDrive();
+
+            if (accessToken) {
+                uploadFileToDrive();
+            } else {
+                document.getElementById('uploadStatus').textContent = '⚠️ Cliquez sur "Se connecter avec Google" puis l\'upload démarrera automatiquement.';
+            }
         }
 
         async function uploadFileToDrive() {
-            if (!selectedFile) {
-                alert('❌ Veuillez sélectionner une vidéo');
-                return;
-            }
-
-            if (APPS_SCRIPT_URL === 'COLLE_TON_URL_APPS_SCRIPT_ICI') {
-                document.getElementById('uploadStatus').textContent = '⚠️ URL Apps Script non configurée. Voir les instructions.';
-                return;
-            }
+            if (!selectedFile || !accessToken) return;
 
             const progressDiv = document.getElementById('uploadProgress');
             const progressFill = document.getElementById('progressFill');
@@ -799,51 +823,96 @@
             const uploadStatus = document.getElementById('uploadStatus');
 
             progressDiv.style.display = 'block';
-            uploadStatus.textContent = '📤 Upload en cours...';
-            progressFill.style.width = '10%';
-            progressFill.textContent = '10%';
-            progressText.textContent = 'Lecture du fichier...';
+            uploadStatus.textContent = '📤 Initialisation de l\'upload...';
+            progressFill.style.width = '0%';
+            progressFill.textContent = '0%';
 
             try {
-                // Read file as base64
-                const base64Data = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const base64 = reader.result.split(',')[1];
-                        resolve(base64);
-                    };
-                    reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
-                    reader.readAsDataURL(selectedFile);
-                });
-
-                progressFill.style.width = '40%';
-                progressFill.textContent = '40%';
-                progressText.textContent = 'Envoi vers Google Drive...';
-
-                // Send to Apps Script
-                const result = await postToAppsScript({
-                    action: 'uploadVideo',
-                    fileName: selectedFile.name,
+                // Step 1: Initiate resumable upload
+                const metadata = {
+                    name: selectedFile.name,
                     mimeType: selectedFile.type,
-                    fileData: base64Data
-                });
+                    parents: [FOLDER_ID]
+                };
 
-                if (result.success) {
-                    uploadedVideoUrl = result.fileUrl;
-                    progressFill.style.width = '100%';
-                    progressFill.textContent = '100%';
-                    progressText.textContent = '✅ Upload terminé !';
-                    uploadStatus.innerHTML = `✅ <strong>Vidéo uploadée avec succès !</strong><br><a href="${uploadedVideoUrl}" target="_blank" style="color: #00d4ff;">Voir sur Drive</a>`;
-                } else {
-                    throw new Error(result.error || 'Erreur inconnue');
+                const initResponse = await fetch(
+                    'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + accessToken,
+                            'Content-Type': 'application/json; charset=UTF-8',
+                            'X-Upload-Content-Type': selectedFile.type,
+                            'X-Upload-Content-Length': selectedFile.size
+                        },
+                        body: JSON.stringify(metadata)
+                    }
+                );
+
+                if (!initResponse.ok) {
+                    const errText = await initResponse.text();
+                    throw new Error('Init upload failed (' + initResponse.status + '): ' + errText);
+                }
+
+                const uploadUrl = initResponse.headers.get('Location');
+                if (!uploadUrl) throw new Error('Pas d\'URL de reprise reçue');
+
+                // Step 2: Upload file in chunks (5 MB chunks)
+                const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
+                const totalSize = selectedFile.size;
+                let offset = 0;
+
+                uploadStatus.textContent = '📤 Upload en cours...';
+
+                while (offset < totalSize) {
+                    const end = Math.min(offset + CHUNK_SIZE, totalSize);
+                    const chunk = selectedFile.slice(offset, end);
+                    const contentRange = `bytes ${offset}-${end - 1}/${totalSize}`;
+
+                    const chunkResponse = await fetch(uploadUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Range': contentRange
+                        },
+                        body: chunk
+                    });
+
+                    if (chunkResponse.status === 200 || chunkResponse.status === 201) {
+                        // Upload complete!
+                        const result = await chunkResponse.json();
+                        uploadedVideoUrl = `https://drive.google.com/file/d/${result.id}/view`;
+                        progressFill.style.width = '100%';
+                        progressFill.textContent = '100%';
+                        progressText.textContent = '✅ Upload terminé !';
+                        uploadStatus.innerHTML = `✅ <strong>Vidéo uploadée avec succès !</strong><br><a href="${uploadedVideoUrl}" target="_blank" style="color: #00d4ff;">Voir sur Drive</a>`;
+                        return;
+                    } else if (chunkResponse.status === 308) {
+                        // Chunk accepted, continue
+                        const range = chunkResponse.headers.get('Range');
+                        if (range) {
+                            offset = parseInt(range.split('-')[1]) + 1;
+                        } else {
+                            offset = end;
+                        }
+                    } else {
+                        const errText = await chunkResponse.text();
+                        throw new Error('Chunk upload failed (' + chunkResponse.status + '): ' + errText);
+                    }
+
+                    // Update progress
+                    const percent = Math.round((offset / totalSize) * 100);
+                    progressFill.style.width = percent + '%';
+                    progressFill.textContent = percent + '%';
+                    progressText.textContent = `Upload : ${percent}% - ${(offset / (1024 * 1024)).toFixed(1)} MB / ${(totalSize / (1024 * 1024)).toFixed(1)} MB`;
                 }
 
             } catch (error) {
-                console.error('Error uploading file:', error);
+                console.error('Upload error:', error);
                 uploadStatus.textContent = '❌ Erreur : ' + error.message;
-                progressDiv.style.display = 'none';
             }
         }
+
+        document.getElementById('authorizeBtn').addEventListener('click', handleAuthClick);
 
         // Initialize rating buttons
         document.querySelectorAll('.rating-group').forEach(group => {
@@ -1163,17 +1232,12 @@
                 // ALWAYS download the PDF locally first
                 doc.save(pdfFileName);
 
-                // Also upload PDF to Drive via Apps Script
-                if (APPS_SCRIPT_URL !== 'COLLE_TON_URL_APPS_SCRIPT_ICI') {
-                    try {
-                        await uploadPDFToDrive(pdfBlob, pdfFileName);
-                    } catch (driveError) {
-                        console.warn('Drive upload failed, but PDF was downloaded locally:', driveError);
-                        document.getElementById('successMessage').textContent = '✅ PDF téléchargé ! (échec upload Drive)';
-                        document.getElementById('successMessage').style.display = 'block';
-                    }
-                } else {
-                    document.getElementById('successMessage').textContent = '✅ PDF généré et téléchargé avec succès !';
+                // Also upload PDF to Drive
+                try {
+                    await uploadPDFToDrive(pdfBlob, pdfFileName);
+                } catch (driveError) {
+                    console.warn('Drive upload failed:', driveError);
+                    document.getElementById('successMessage').textContent = '✅ PDF téléchargé !';
                     document.getElementById('successMessage').style.display = 'block';
                 }
 
@@ -1187,10 +1251,36 @@
             }
         });
 
-        // Upload PDF to Google Drive via Apps Script
+        // Upload PDF to Google Drive
         async function uploadPDFToDrive(pdfBlob, fileName) {
             try {
-                // Convert blob to base64
+                // Try direct upload if authenticated
+                if (accessToken) {
+                    const metadata = {
+                        name: fileName,
+                        mimeType: 'application/pdf',
+                        parents: [FOLDER_ID]
+                    };
+                    const form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                    form.append('file', pdfBlob);
+
+                    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + accessToken },
+                        body: form
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const pdfUrl = `https://drive.google.com/file/d/${result.id}/view`;
+                        document.getElementById('successMessage').innerHTML = `✅ PDF généré, téléchargé ET enregistré sur Drive !<br><a href="${pdfUrl}" target="_blank" style="color: #00d4ff;">Voir le PDF sur Drive</a>`;
+                        document.getElementById('successMessage').style.display = 'block';
+                        return;
+                    }
+                }
+
+                // Fallback: Apps Script for PDF (small files)
                 const base64Data = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result.split(',')[1]);
@@ -1198,22 +1288,36 @@
                     reader.readAsDataURL(pdfBlob);
                 });
 
-                const result = await postToAppsScript({
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', APPS_SCRIPT_URL);
+                xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+                xhr.onload = function() {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success) {
+                            document.getElementById('successMessage').innerHTML = `✅ PDF généré, téléchargé ET enregistré sur Drive !<br><a href="${result.fileUrl}" target="_blank" style="color: #00d4ff;">Voir le PDF sur Drive</a>`;
+                        } else {
+                            document.getElementById('successMessage').textContent = '✅ PDF téléchargé (erreur Drive: ' + result.error + ')';
+                        }
+                        document.getElementById('successMessage').style.display = 'block';
+                    } catch (e) {
+                        document.getElementById('successMessage').textContent = '✅ PDF téléchargé !';
+                        document.getElementById('successMessage').style.display = 'block';
+                    }
+                };
+                xhr.onerror = function() {
+                    document.getElementById('successMessage').textContent = '✅ PDF téléchargé (erreur upload Drive)';
+                    document.getElementById('successMessage').style.display = 'block';
+                };
+                xhr.send(JSON.stringify({
                     action: 'uploadPDF',
                     fileName: fileName,
                     fileData: base64Data
-                });
+                }));
 
-                if (result.success) {
-                    const pdfUrl = result.fileUrl;
-                    document.getElementById('successMessage').innerHTML = `✅ PDF généré, téléchargé ET enregistré sur Drive !<br><a href="${pdfUrl}" target="_blank" style="color: #00d4ff;">Voir le PDF sur Drive</a>`;
-                    document.getElementById('successMessage').style.display = 'block';
-                } else {
-                    throw new Error(result.error || 'Erreur upload PDF');
-                }
             } catch (error) {
                 console.error('Error uploading PDF:', error);
-                document.getElementById('successMessage').textContent = '✅ PDF téléchargé (erreur upload Drive: ' + error.message + ')';
+                document.getElementById('successMessage').textContent = '✅ PDF téléchargé (erreur Drive: ' + error.message + ')';
                 document.getElementById('successMessage').style.display = 'block';
             }
         }
