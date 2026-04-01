@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Évaluation Vidéo OSI - Collège</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #0f3460;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #00d4ff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: #00ffcc;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8fbff 0%, #e8f4f8 100%);
+            border-radius: 10px;
+            border-left: 5px solid #00d4ff;
+        }
+
+        .section-title {
+            color: #0f3460;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0f3460;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .optional {
+            color: #999;
+            font-weight: normal;
+            font-size: 0.9em;
+        }
+
+        .dynamic-fields {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .dynamic-fields.active {
+            display: block;
+        }
+
+        .student-row,
+        .jury-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .criterion {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .criterion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .criterion-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .rating-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .rating-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .rating-btn:hover {
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+        }
+
+        .rating-btn.selected {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e;
+            border-color: #00d4ff;
+        }
+
+        .axis-header {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .axis-header h3 {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .score-display h2 {
+            color: #1a1a2e;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .score-display p {
+            color: #0f3460;
+            font-size: 1.2em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #ff006e;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #00ffcc;
+            color: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .student-row,
+            .jury-row {
+                grid-template-columns: 1fr;
+            }
+
+            .rating-group {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour à la page principale</a>
+        
+        <h1>🎬 Évaluation Vidéo OSI - Collège</h1>
+        <p class="subtitle">Olympiades des Sciences de l'Ingénieur</p>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="evaluationForm">
+            <!-- Section 1: Informations du projet -->
+            <div class="section">
+                <h2 class="section-title">📝 Informations du Projet</h2>
+                
+                <div class="form-group">
+                    <label>Nom du projet <span class="optional">(optionnel)</span></label>
+                    <input type="text" id="projectName" placeholder="Ex: EcoMobilité Urbaine">
+                </div>
+
+                <div class="form-group">
+                    <label>Description du projet <span class="optional">(optionnel)</span></label>
+                    <textarea id="projectDescription" placeholder="Décrivez brièvement le projet..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Nom de l'établissement *</label>
+                    <input type="text" id="schoolName" required placeholder="Ex: Lycée International de Istanbul">
+                </div>
+
+                <div class="form-group">
+                    <label>Nom du professeur encadrant *</label>
+                    <input type="text" id="teacherName" required placeholder="Ex: M. Dupont">
+                </div>
+
+                <div class="form-group">
+                    <label>Classe *</label>
+                    <select id="classLevel" required>
+                        <option value="">-- Sélectionnez --</option>
+                        <option value="5ème">5ème</option>
+                        <option value="4ème">4ème</option>
+                        <option value="3ème">3ème</option>
+                        <option value="autre">Autre (à préciser)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="otherClassGroup" style="display: none;">
+                    <label>Précisez la classe *</label>
+                    <input type="text" id="otherClass" placeholder="Ex: 6ème, 2nde...">
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre d'élèves dans l'équipe *</label>
+                    <select id="studentCount" required>
+                        <option value="">-- Sélectionnez --</option>
+                        <option value="1">1 élève</option>
+                        <option value="2">2 élèves</option>
+                        <option value="3">3 élèves</option>
+                        <option value="4">4 élèves</option>
+                        <option value="5">5 élèves</option>
+                        <option value="6">6 élèves</option>
+                    </select>
+                </div>
+
+                <div id="studentsFields" class="dynamic-fields"></div>
+
+                <div class="form-group">
+                    <label>Nombre de jurés *</label>
+                    <select id="juryCount" required>
+                        <option value="">-- Sélectionnez --</option>
+                        <option value="1">1 juré</option>
+                        <option value="2">2 jurés</option>
+                        <option value="3">3 jurés</option>
+                        <option value="4">4 jurés</option>
+                    </select>
+                </div>
+
+                <div id="juryFields" class="dynamic-fields"></div>
+            </div>
+
+            <!-- Section 2: Grille d'évaluation -->
+            <div class="section">
+                <h2 class="section-title">📊 Grille d'Évaluation</h2>
+
+                <!-- AXE 1 -->
+                <div class="axis-header">
+                    <h3>🔧 AXE 1 - Démarche d'ingénierie</h3>
+                    <p>40% de la note finale</p>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">1. Compréhension du problème</span>
+                    </div>
+                    <div class="rating-group" data-criterion="1"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">2. Démarche d'ingénierie et de projet</span>
+                    </div>
+                    <div class="rating-group" data-criterion="2"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">3. Pertinence de la solution technique</span>
+                    </div>
+                    <div class="rating-group" data-criterion="3"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">4. Justification des choix techniques</span>
+                    </div>
+                    <div class="rating-group" data-criterion="4"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">5. Mobilisation des sciences et de la technologie</span>
+                    </div>
+                    <div class="rating-group" data-criterion="5"></div>
+                </div>
+
+                <!-- AXE 2 -->
+                <div class="axis-header" style="margin-top: 30px;">
+                    <h3>💡 AXE 2 - Sens, valeurs et impact</h3>
+                    <p>40% de la note finale</p>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">6. Dimension humaine, éthique ou sociétale</span>
+                    </div>
+                    <div class="rating-group" data-criterion="6"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">7. Impact et utilité du projet</span>
+                    </div>
+                    <div class="rating-group" data-criterion="7"></div>
+                </div>
+
+                <!-- AXE 3 -->
+                <div class="axis-header" style="margin-top: 30px;">
+                    <h3>🎬 AXE 3 - Communication et qualité de la vidéo</h3>
+                    <p>20% de la note finale</p>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">8. Clarté et structuration de la vidéo</span>
+                    </div>
+                    <div class="rating-group" data-criterion="8"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">9. Qualité de la communication orale</span>
+                    </div>
+                    <div class="rating-group" data-criterion="9"></div>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-header">
+                        <span class="criterion-title">10. Qualité des supports visuels et démonstrations</span>
+                    </div>
+                    <div class="rating-group" data-criterion="10"></div>
+                </div>
+            </div>
+
+            <!-- Score Display -->
+            <div class="score-display" id="scoreDisplay" style="display: none;">
+                <h2 id="finalScore">-- / 100</h2>
+                <p>Note finale</p>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="button" class="btn" id="generateBtn" disabled>
+                📄 Générer le PDF et Enregistrer
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Initialize rating buttons
+        document.querySelectorAll('.rating-group').forEach(group => {
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'rating-btn';
+                btn.textContent = i;
+                btn.dataset.value = i;
+                btn.onclick = () => selectRating(group, btn);
+                group.appendChild(btn);
+            }
+        });
+
+        const ratings = {};
+
+        function selectRating(group, selectedBtn) {
+            group.querySelectorAll('.rating-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            selectedBtn.classList.add('selected');
+            
+            const criterion = group.dataset.criterion;
+            ratings[criterion] = parseInt(selectedBtn.dataset.value);
+            
+            calculateScore();
+            checkFormComplete();
+        }
+
+        function calculateScore() {
+            if (Object.keys(ratings).length < 10) return;
+
+            // Coefficients selon le document
+            const axe1Criteria = {1: 1.5, 2: 2, 3: 2, 4: 1.5, 5: 1};
+            const axe2Criteria = {6: 2, 7: 1.5};
+            const axe3Criteria = {8: 2, 9: 1.5, 10: 1.5};
+
+            // Calcul AXE 1 (40%)
+            let axe1Sum = 0;
+            let axe1MaxSum = 0;
+            for (let i = 1; i <= 5; i++) {
+                axe1Sum += (ratings[i] || 0) * axe1Criteria[i];
+                axe1MaxSum += 5 * axe1Criteria[i];
+            }
+            const axe1Score = (axe1Sum / axe1MaxSum) * 40;
+
+            // Calcul AXE 2 (40%)
+            let axe2Sum = 0;
+            let axe2MaxSum = 0;
+            for (let i = 6; i <= 7; i++) {
+                axe2Sum += (ratings[i] || 0) * axe2Criteria[i];
+                axe2MaxSum += 5 * axe2Criteria[i];
+            }
+            const axe2Score = (axe2Sum / axe2MaxSum) * 40;
+
+            // Calcul AXE 3 (20%)
+            let axe3Sum = 0;
+            let axe3MaxSum = 0;
+            for (let i = 8; i <= 10; i++) {
+                axe3Sum += (ratings[i] || 0) * axe3Criteria[i];
+                axe3MaxSum += 5 * axe3Criteria[i];
+            }
+            const axe3Score = (axe3Sum / axe3MaxSum) * 20;
+
+            const finalScore = Math.round(axe1Score + axe2Score + axe3Score);
+
+            document.getElementById('scoreDisplay').style.display = 'block';
+            document.getElementById('finalScore').textContent = `${finalScore} / 100`;
+            
+            return finalScore;
+        }
+
+        // Dynamic fields for students
+        document.getElementById('studentCount').addEventListener('change', function() {
+            const count = parseInt(this.value);
+            const container = document.getElementById('studentsFields');
+            container.innerHTML = '';
+            
+            if (count > 0) {
+                container.classList.add('active');
+                for (let i = 1; i <= count; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'student-row';
+                    row.innerHTML = `
+                        <div>
+                            <label>Nom élève ${i} *</label>
+                            <input type="text" name="studentLastName${i}" required placeholder="Nom">
+                        </div>
+                        <div>
+                            <label>Prénom élève ${i} *</label>
+                            <input type="text" name="studentFirstName${i}" required placeholder="Prénom">
+                        </div>
+                    `;
+                    container.appendChild(row);
+                }
+            }
+            checkFormComplete();
+        });
+
+        // Dynamic fields for jury
+        document.getElementById('juryCount').addEventListener('change', function() {
+            const count = parseInt(this.value);
+            const container = document.getElementById('juryFields');
+            container.innerHTML = '';
+            
+            if (count > 0) {
+                container.classList.add('active');
+                for (let i = 1; i <= count; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'jury-row';
+                    row.innerHTML = `
+                        <div>
+                            <label>Nom juré ${i} *</label>
+                            <input type="text" name="juryLastName${i}" required placeholder="Nom">
+                        </div>
+                        <div>
+                            <label>Prénom juré ${i} *</label>
+                            <input type="text" name="juryFirstName${i}" required placeholder="Prénom">
+                        </div>
+                    `;
+                    container.appendChild(row);
+                }
+            }
+            checkFormComplete();
+        });
+
+        // Class level change
+        document.getElementById('classLevel').addEventListener('change', function() {
+            const otherGroup = document.getElementById('otherClassGroup');
+            if (this.value === 'autre') {
+                otherGroup.style.display = 'block';
+                document.getElementById('otherClass').required = true;
+            } else {
+                otherGroup.style.display = 'none';
+                document.getElementById('otherClass').required = false;
+            }
+            checkFormComplete();
+        });
+
+        function checkFormComplete() {
+            const form = document.getElementById('evaluationForm');
+            const requiredInputs = form.querySelectorAll('[required]');
+            let allFilled = true;
+            
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                }
+            });
+
+            const allRated = Object.keys(ratings).length === 10;
+            
+            document.getElementById('generateBtn').disabled = !(allFilled && allRated);
+        }
+
+        // Monitor all inputs
+        document.getElementById('evaluationForm').addEventListener('input', checkFormComplete);
+
+        // Generate PDF
+        document.getElementById('generateBtn').addEventListener('click', async function() {
+            try {
+                if (typeof window.jspdf === 'undefined') {
+                    alert('❌ La bibliothèque PDF n\'est pas chargée. Assurez-vous d\'avoir une connexion internet.');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const projectName = document.getElementById('projectName').value || 'Evaluation_OSI';
+                const finalScore = calculateScore();
+
+                // Collect all data
+                const data = {
+                    projectName: document.getElementById('projectName').value,
+                    projectDescription: document.getElementById('projectDescription').value,
+                    schoolName: document.getElementById('schoolName').value,
+                    teacherName: document.getElementById('teacherName').value,
+                    classLevel: document.getElementById('classLevel').value === 'autre' 
+                        ? document.getElementById('otherClass').value 
+                        : document.getElementById('classLevel').value,
+                    students: [],
+                    jury: [],
+                    ratings: ratings,
+                    finalScore: finalScore,
+                    date: new Date().toLocaleDateString('fr-FR')
+                };
+
+                // Collect students
+                const studentCount = parseInt(document.getElementById('studentCount').value);
+                for (let i = 1; i <= studentCount; i++) {
+                    data.students.push({
+                        lastName: document.querySelector(`input[name="studentLastName${i}"]`).value,
+                        firstName: document.querySelector(`input[name="studentFirstName${i}"]`).value
+                    });
+                }
+
+                // Collect jury
+                const juryCount = parseInt(document.getElementById('juryCount').value);
+                for (let i = 1; i <= juryCount; i++) {
+                    data.jury.push({
+                        lastName: document.querySelector(`input[name="juryLastName${i}"]`).value,
+                        firstName: document.querySelector(`input[name="juryFirstName${i}"]`).value
+                    });
+                }
+
+                // Save to storage
+                await saveToDatabase(data);
+
+                // Generate PDF
+                let y = 20;
+
+                doc.setFontSize(18);
+                doc.setTextColor(15, 52, 96);
+                doc.text('Evaluation OSI - College', 105, y, { align: 'center' });
+                y += 15;
+
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Date: ${data.date}`, 105, y, { align: 'center' });
+                y += 15;
+
+                if (data.projectName) {
+                    doc.setFontSize(14);
+                    doc.setTextColor(0, 212, 255);
+                    doc.text(`Projet: ${data.projectName}`, 20, y);
+                    y += 10;
+                }
+
+                if (data.projectDescription) {
+                    doc.setFontSize(10);
+                    doc.setTextColor(60);
+                    const lines = doc.splitTextToSize(data.projectDescription, 170);
+                    doc.text(lines, 20, y);
+                    y += lines.length * 5 + 5;
+                }
+
+                doc.setFontSize(12);
+                doc.setTextColor(0);
+                doc.text(`Etablissement: ${data.schoolName}`, 20, y);
+                y += 8;
+                doc.text(`Professeur: ${data.teacherName}`, 20, y);
+                y += 8;
+                doc.text(`Classe: ${data.classLevel}`, 20, y);
+                y += 12;
+
+                doc.setFontSize(11);
+                doc.setTextColor(15, 52, 96);
+                doc.text('Eleves:', 20, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(60);
+                data.students.forEach(student => {
+                    doc.text(`• ${student.firstName} ${student.lastName}`, 25, y);
+                    y += 6;
+                });
+                y += 6;
+
+                doc.setFontSize(11);
+                doc.setTextColor(15, 52, 96);
+                doc.text('Jury:', 20, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(60);
+                data.jury.forEach(juror => {
+                    doc.text(`• ${juror.firstName} ${juror.lastName}`, 25, y);
+                    y += 6;
+                });
+                y += 10;
+
+                doc.setFontSize(14);
+                doc.setTextColor(0, 212, 255);
+                doc.text('Evaluation detaillee', 20, y);
+                y += 10;
+
+                const criteria = [
+                    '1. Comprehension du probleme',
+                    '2. Demarche d\'ingenierie et de projet',
+                    '3. Pertinence de la solution technique',
+                    '4. Justification des choix techniques',
+                    '5. Mobilisation des sciences et de la technologie',
+                    '6. Dimension humaine, ethique ou societale',
+                    '7. Impact et utilite du projet',
+                    '8. Clarte et structuration de la video',
+                    '9. Qualite de la communication orale',
+                    '10. Qualite des supports visuels'
+                ];
+
+                doc.setFontSize(10);
+                doc.setTextColor(0);
+                criteria.forEach((criterion, index) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(`${criterion}: ${ratings[index + 1]}/5`, 20, y);
+                    y += 6;
+                });
+
+                y += 10;
+                doc.setFontSize(16);
+                doc.setTextColor(0, 212, 255);
+                doc.text(`Note finale: ${finalScore}/100`, 105, y, { align: 'center' });
+
+                const fileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_Evaluation.pdf';
+                doc.save(fileName);
+
+                document.getElementById('successMessage').textContent = '✅ PDF genere et donnees enregistrees avec succes !';
+                document.getElementById('successMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('successMessage').style.display = 'none';
+                }, 5000);
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('errorMessage').textContent = '❌ Erreur lors de la génération du PDF: ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+
+        async function saveToDatabase(data) {
+            try {
+                if (typeof window.storage !== 'undefined') {
+                    const key = `evaluation_${Date.now()}`;
+                    await window.storage.set(key, JSON.stringify(data));
+                }
+                console.log('Données enregistrées:', data);
+            } catch (error) {
+                console.error('Erreur lors de l\'enregistrement:', error);
+            }
+        }
+    </script>
+</body>
+</html>
