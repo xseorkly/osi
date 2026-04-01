@@ -735,6 +735,7 @@
         let gisInited = false;
         let uploadedVideoUrl = '';
         let selectedFile = null;
+        let accessToken = null;
 
         // Initialize Google API
         function gapiLoaded() {
@@ -742,11 +743,16 @@
         }
 
         async function initializeGapiClient() {
-            await gapi.client.init({
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            });
-            gapiInited = true;
-            maybeEnableButtons();
+            try {
+                await gapi.client.init({
+                    apiKey: '', // Not needed for OAuth
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                });
+                gapiInited = true;
+                maybeEnableButtons();
+            } catch (error) {
+                console.error('Error initializing GAPI client:', error);
+            }
         }
 
         function gisLoaded() {
@@ -761,7 +767,8 @@
 
         function maybeEnableButtons() {
             if (gapiInited && gisInited) {
-                document.getElementById('authorizeBtn').style.display = 'inline-flex';
+                document.getElementById('authorizeBtn').style.display = 'none'; // Hide by default
+                console.log('Google APIs ready');
             }
         }
 
@@ -769,10 +776,17 @@
         function handleAuthClick() {
             tokenClient.callback = async (resp) => {
                 if (resp.error !== undefined) {
-                    throw (resp);
+                    console.error('Auth error:', resp);
+                    alert('❌ Erreur d\'authentification : ' + resp.error);
+                    return;
                 }
+                accessToken = resp.access_token;
                 document.getElementById('authorizeBtn').style.display = 'none';
-                uploadFileToDrive();
+                
+                // Upload video if one is selected
+                if (selectedFile) {
+                    uploadFileToDrive();
+                }
             };
 
             if (gapi.client.getToken() === null) {
@@ -829,13 +843,9 @@
             fileSize.textContent = `Taille : ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
             fileInfo.classList.add('active');
             
-            // Show auth button if not authenticated
-            if (gapi.client.getToken() === null) {
-                document.getElementById('authorizeBtn').style.display = 'inline-flex';
-                document.getElementById('uploadStatus').textContent = '⚠️ Cliquez sur "Se connecter avec Google" pour uploader';
-            } else {
-                uploadFileToDrive();
-            }
+            // Show auth button and trigger auth
+            document.getElementById('authorizeBtn').style.display = 'inline-flex';
+            document.getElementById('uploadStatus').textContent = '⚠️ Cliquez sur "Se connecter avec Google" pour uploader';
         }
 
         async function uploadFileToDrive() {
@@ -853,6 +863,15 @@
             uploadStatus.textContent = '📤 Upload en cours...';
 
             try {
+                // Get access token
+                const token = accessToken || (gapi.client.getToken() ? gapi.client.getToken().access_token : null);
+                
+                if (!token) {
+                    alert('❌ Vous devez vous connecter avec Google d\'abord');
+                    document.getElementById('authorizeBtn').style.display = 'inline-flex';
+                    return;
+                }
+
                 // Create metadata
                 const metadata = {
                     name: selectedFile.name,
@@ -866,7 +885,7 @@
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + gapi.client.getToken().access_token);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 
                 xhr.upload.addEventListener('progress', (e) => {
                     if (e.lengthComputable) {
@@ -886,11 +905,13 @@
                         progressFill.textContent = '100%';
                         progressText.textContent = '✅ Upload terminé !';
                     } else {
-                        throw new Error('Upload failed');
+                        console.error('Upload failed:', xhr.status, xhr.responseText);
+                        throw new Error('Upload failed: ' + xhr.status);
                     }
                 };
 
                 xhr.onerror = function() {
+                    console.error('XHR error');
                     uploadStatus.textContent = '❌ Erreur lors de l\'upload';
                     progressDiv.style.display = 'none';
                 };
@@ -1226,10 +1247,10 @@
                 const pdfFileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_Evaluation.pdf';
 
                 // Check if user is authenticated with Google
-                if (gapi.client.getToken() === null) {
+                if (gapi.client.getToken() === null && !accessToken) {
                     // Not authenticated - just download the PDF
                     doc.save(pdfFileName);
-                    document.getElementById('successMessage').textContent = '✅ PDF genere et donnees enregistrees avec succes !';
+                    document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge avec succes !';
                     document.getElementById('successMessage').style.display = 'block';
                 } else {
                     // Authenticated - upload to Drive AND download
@@ -1250,6 +1271,16 @@
         // Upload PDF to Google Drive
         async function uploadPDFToDrive(pdfBlob, fileName) {
             try {
+                // Get access token
+                const token = accessToken || (gapi.client.getToken() ? gapi.client.getToken().access_token : null);
+                
+                if (!token) {
+                    console.warn('No access token available for PDF upload');
+                    document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge (non connecte a Drive)';
+                    document.getElementById('successMessage').style.display = 'block';
+                    return;
+                }
+
                 const metadata = {
                     name: fileName,
                     mimeType: 'application/pdf',
@@ -1263,7 +1294,7 @@
                 const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + gapi.client.getToken().access_token
+                        'Authorization': 'Bearer ' + token
                     },
                     body: form
                 });
@@ -1274,6 +1305,7 @@
                     document.getElementById('successMessage').innerHTML = `✅ PDF genere, telecharge ET enregistre sur Drive !<br><a href="${pdfUrl}" target="_blank" style="color: #00d4ff;">Voir le PDF sur Drive</a>`;
                     document.getElementById('successMessage').style.display = 'block';
                 } else {
+                    console.error('PDF upload failed:', response.status);
                     throw new Error('Upload PDF failed');
                 }
             } catch (error) {
