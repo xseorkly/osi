@@ -737,6 +737,19 @@
         let selectedFile = null;
         let accessToken = null;
 
+        // Safe helper to get Google access token without crashing
+        function getGoogleToken() {
+            if (accessToken) return accessToken;
+            try {
+                if (typeof gapi !== 'undefined' && gapi.client && gapi.client.getToken && gapi.client.getToken()) {
+                    return gapi.client.getToken().access_token;
+                }
+            } catch (e) {
+                console.warn('Could not get Google token:', e);
+            }
+            return null;
+        }
+
         // Initialize Google API
         function gapiLoaded() {
             if (typeof gapi !== 'undefined' && gapi.load) {
@@ -798,7 +811,7 @@
                 }
             };
 
-            if (!gapi.client || gapi.client.getToken() === null) {
+            if (getGoogleToken() === null) {
                 tokenClient.requestAccessToken({prompt: 'consent'});
             } else {
                 tokenClient.requestAccessToken({prompt: ''});
@@ -873,7 +886,7 @@
 
             try {
                 // Get access token
-                const token = accessToken || (gapi.client && gapi.client.getToken() ? gapi.client.getToken().access_token : null);
+                const token = getGoogleToken();
                 
                 if (!token) {
                     alert('❌ Vous devez vous connecter avec Google d\'abord');
@@ -1256,7 +1269,8 @@
                 const pdfFileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_Evaluation.pdf';
 
                 // Check if user is authenticated with Google
-                if ((!gapi.client || gapi.client.getToken() === null) && !accessToken) {
+                const googleToken = getGoogleToken();
+                if (!googleToken) {
                     // Not authenticated - just download the PDF
                     doc.save(pdfFileName);
                     document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge avec succes !';
@@ -1281,7 +1295,7 @@
         async function uploadPDFToDrive(pdfBlob, fileName) {
             try {
                 // Get access token
-                const token = accessToken || (gapi.client && gapi.client.getToken() ? gapi.client.getToken().access_token : null);
+                const token = getGoogleToken();
                 
                 if (!token) {
                     console.warn('No access token available for PDF upload');
