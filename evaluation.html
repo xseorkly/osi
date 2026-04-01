@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Évaluation Vidéo OSI - Collège</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" onerror="console.warn('Google API script failed to load')"></script>
-    <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" onerror="console.warn('Google Identity Services script failed to load')"></script>
     <style>
         * {
             margin: 0;
@@ -774,13 +772,19 @@
         }
 
         function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: '', // defined later
-            });
-            gisInited = true;
-            maybeEnableButtons();
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: '', // defined later
+                });
+                gisInited = true;
+                console.log('Google Identity Services initialized successfully');
+                maybeEnableButtons();
+            } catch (error) {
+                console.error('Error initializing Google Identity Services:', error);
+                gisInited = false;
+            }
         }
 
         function maybeEnableButtons() {
@@ -793,7 +797,21 @@
         // Handle authorization
         function handleAuthClick() {
             if (!tokenClient) {
-                alert('❌ Le service Google n\'est pas disponible. Vérifiez votre connexion internet.');
+                // Check what's actually missing
+                const gapiAvailable = typeof gapi !== 'undefined';
+                const googleAvailable = typeof google !== 'undefined' && google.accounts;
+                console.error('Auth debug - gapi loaded:', gapiAvailable, '| google.accounts loaded:', googleAvailable, '| gapiInited:', gapiInited, '| gisInited:', gisInited);
+                
+                if (!googleAvailable) {
+                    alert('❌ Le service Google Identity ne s\'est pas chargé.\n\n' +
+                          'Causes possibles :\n' +
+                          '• Un bloqueur de publicités bloque le script Google\n' +
+                          '• Désactivez votre bloqueur de pubs puis rechargez la page\n' +
+                          '• Essayez en navigation privée');
+                } else {
+                    alert('❌ L\'authentification Google n\'a pas pu s\'initialiser.\n\n' +
+                          'Vérifiez que le domaine est autorisé dans Google Cloud Console.');
+                }
                 return;
             }
             tokenClient.callback = async (resp) => {
@@ -949,9 +967,24 @@
 
         document.getElementById('authorizeBtn').addEventListener('click', handleAuthClick);
 
-        // Load Google API
-        window.gapiLoaded = gapiLoaded;
-        window.gisLoaded = gisLoaded;
+        // Load Google scripts dynamically (after functions are defined)
+        function loadGoogleScripts() {
+            // Load Google API (gapi)
+            const gapiScript = document.createElement('script');
+            gapiScript.src = 'https://apis.google.com/js/api.js';
+            gapiScript.onload = gapiLoaded;
+            gapiScript.onerror = () => console.warn('Google API script failed to load');
+            document.head.appendChild(gapiScript);
+
+            // Load Google Identity Services (gis)
+            const gisScript = document.createElement('script');
+            gisScript.src = 'https://accounts.google.com/gsi/client';
+            gisScript.onload = gisLoaded;
+            gisScript.onerror = () => console.warn('Google Identity Services script failed to load');
+            document.head.appendChild(gisScript);
+        }
+
+        loadGoogleScripts();
 
         // Initialize rating buttons
         document.querySelectorAll('.rating-group').forEach(group => {
