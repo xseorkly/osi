@@ -389,26 +389,6 @@
             display: block;
         }
 
-        .google-signin-btn {
-            background: white;
-            color: #0f3460;
-            padding: 12px 30px;
-            border: 2px solid #00d4ff;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .google-signin-btn:hover {
-            background: #00d4ff;
-            color: white;
-        }
-
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -512,10 +492,6 @@
             <!-- Section Upload Vidéo -->
             <div class="section">
                 <h2 class="section-title">📹 Upload de la Vidéo</h2>
-                
-                <button type="button" class="google-signin-btn" id="authorizeBtn" style="display: none;">
-                    🔐 Se connecter avec Google
-                </button>
 
                 <div class="upload-section">
                     <div class="upload-zone" id="uploadZone">
@@ -722,119 +698,12 @@
     </div>
 
     <script>
-        // Google Drive Configuration
-        const CLIENT_ID = '643447633657-r3os1hvv2ta75batvjid2ngs840nodp0.apps.googleusercontent.com';
-        const API_KEY = 'AIzaSyBdR8TYO9Z_EXAMPLE'; // Pas nécessaire pour OAuth
-        const FOLDER_ID = '1l7bP0RTCAPICrpHLl8BqjqR9uYv5ppfy';
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        // ===== CONFIGURATION =====
+        // IMPORTANT: Remplace cette URL par l'URL de ton Google Apps Script déployé
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyO9ZT55TXCjc2Xy-vTBO6RMq5doHpi3rYPW4h5UHEylYWQ7BWb5Hk9GAmzVpsWmCkA8A/exec';
 
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
         let uploadedVideoUrl = '';
         let selectedFile = null;
-        let accessToken = null;
-
-        // Safe helper to get Google access token without crashing
-        function getGoogleToken() {
-            if (accessToken) return accessToken;
-            try {
-                if (typeof gapi !== 'undefined' && gapi.client && gapi.client.getToken && gapi.client.getToken()) {
-                    return gapi.client.getToken().access_token;
-                }
-            } catch (e) {
-                console.warn('Could not get Google token:', e);
-            }
-            return null;
-        }
-
-        // Initialize Google API
-        function gapiLoaded() {
-            if (typeof gapi !== 'undefined' && gapi.load) {
-                gapi.load('client', initializeGapiClient);
-            } else {
-                console.warn('Google API (gapi) not available');
-                gapiInited = false;
-            }
-        }
-
-        async function initializeGapiClient() {
-            try {
-                await gapi.client.init({
-                    apiKey: '', // Not needed for OAuth
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-                });
-                gapiInited = true;
-                maybeEnableButtons();
-            } catch (error) {
-                console.error('Error initializing GAPI client:', error);
-            }
-        }
-
-        function gisLoaded() {
-            try {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: '', // defined later
-                });
-                gisInited = true;
-                console.log('Google Identity Services initialized successfully');
-                maybeEnableButtons();
-            } catch (error) {
-                console.error('Error initializing Google Identity Services:', error);
-                gisInited = false;
-            }
-        }
-
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                document.getElementById('authorizeBtn').style.display = 'none'; // Hide by default
-                console.log('Google APIs ready');
-            }
-        }
-
-        // Handle authorization
-        function handleAuthClick() {
-            if (!tokenClient) {
-                // Check what's actually missing
-                const gapiAvailable = typeof gapi !== 'undefined';
-                const googleAvailable = typeof google !== 'undefined' && google.accounts;
-                console.error('Auth debug - gapi loaded:', gapiAvailable, '| google.accounts loaded:', googleAvailable, '| gapiInited:', gapiInited, '| gisInited:', gisInited);
-                
-                if (!googleAvailable) {
-                    alert('❌ Le service Google Identity ne s\'est pas chargé.\n\n' +
-                          'Causes possibles :\n' +
-                          '• Un bloqueur de publicités bloque le script Google\n' +
-                          '• Désactivez votre bloqueur de pubs puis rechargez la page\n' +
-                          '• Essayez en navigation privée');
-                } else {
-                    alert('❌ L\'authentification Google n\'a pas pu s\'initialiser.\n\n' +
-                          'Vérifiez que le domaine est autorisé dans Google Cloud Console.');
-                }
-                return;
-            }
-            tokenClient.callback = async (resp) => {
-                if (resp.error !== undefined) {
-                    console.error('Auth error:', resp);
-                    alert('❌ Erreur d\'authentification : ' + resp.error);
-                    return;
-                }
-                accessToken = resp.access_token;
-                document.getElementById('authorizeBtn').style.display = 'none';
-                
-                // Upload video if one is selected
-                if (selectedFile) {
-                    uploadFileToDrive();
-                }
-            };
-
-            if (getGoogleToken() === null) {
-                tokenClient.requestAccessToken({prompt: 'consent'});
-            } else {
-                tokenClient.requestAccessToken({prompt: ''});
-            }
-        }
 
         // Upload zone interactions
         const uploadZone = document.getElementById('uploadZone');
@@ -878,19 +747,29 @@
                 return;
             }
 
+            // Check file size (50MB max for Apps Script)
+            if (file.size > 50 * 1024 * 1024) {
+                alert('❌ Le fichier est trop volumineux (max 50 MB).');
+                return;
+            }
+
             selectedFile = file;
             fileName.textContent = file.name;
             fileSize.textContent = `Taille : ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
             fileInfo.classList.add('active');
             
-            // Show auth button and trigger auth
-            document.getElementById('authorizeBtn').style.display = 'inline-flex';
-            document.getElementById('uploadStatus').textContent = '⚠️ Cliquez sur "Se connecter avec Google" pour uploader';
+            // Auto-upload immediately — no Google sign-in needed!
+            uploadFileToDrive();
         }
 
         async function uploadFileToDrive() {
             if (!selectedFile) {
                 alert('❌ Veuillez sélectionner une vidéo');
+                return;
+            }
+
+            if (APPS_SCRIPT_URL === 'COLLE_TON_URL_APPS_SCRIPT_ICI') {
+                document.getElementById('uploadStatus').textContent = '⚠️ URL Apps Script non configurée. Voir les instructions.';
                 return;
             }
 
@@ -901,62 +780,52 @@
 
             progressDiv.style.display = 'block';
             uploadStatus.textContent = '📤 Upload en cours...';
+            progressFill.style.width = '10%';
+            progressFill.textContent = '10%';
+            progressText.textContent = 'Lecture du fichier...';
 
             try {
-                // Get access token
-                const token = getGoogleToken();
-                
-                if (!token) {
-                    alert('❌ Vous devez vous connecter avec Google d\'abord');
-                    document.getElementById('authorizeBtn').style.display = 'inline-flex';
-                    return;
-                }
-
-                // Create metadata
-                const metadata = {
-                    name: selectedFile.name,
-                    mimeType: selectedFile.type,
-                    parents: [FOLDER_ID]
-                };
-
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', selectedFile);
-
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percentComplete = Math.round((e.loaded / e.total) * 100);
-                        progressFill.style.width = percentComplete + '%';
-                        progressFill.textContent = percentComplete + '%';
-                        progressText.textContent = `Upload : ${percentComplete}% - ${(e.loaded / (1024 * 1024)).toFixed(2)} MB / ${(e.total / (1024 * 1024)).toFixed(2)} MB`;
-                    }
+                // Read file as base64
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64 = reader.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
+                    reader.readAsDataURL(selectedFile);
                 });
 
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
-                        uploadedVideoUrl = `https://drive.google.com/file/d/${response.id}/view`;
-                        uploadStatus.innerHTML = `✅ <strong>Vidéo uploadée avec succès !</strong><br><a href="${uploadedVideoUrl}" target="_blank" style="color: #00d4ff;">Voir sur Drive</a>`;
-                        progressFill.style.width = '100%';
-                        progressFill.textContent = '100%';
-                        progressText.textContent = '✅ Upload terminé !';
-                    } else {
-                        console.error('Upload failed:', xhr.status, xhr.responseText);
-                        throw new Error('Upload failed: ' + xhr.status);
-                    }
-                };
+                progressFill.style.width = '40%';
+                progressFill.textContent = '40%';
+                progressText.textContent = 'Envoi vers Google Drive...';
 
-                xhr.onerror = function() {
-                    console.error('XHR error');
-                    uploadStatus.textContent = '❌ Erreur lors de l\'upload';
-                    progressDiv.style.display = 'none';
-                };
+                // Send to Apps Script
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'uploadVideo',
+                        fileName: selectedFile.name,
+                        mimeType: selectedFile.type,
+                        fileData: base64Data
+                    })
+                });
 
-                xhr.send(form);
+                progressFill.style.width = '90%';
+                progressFill.textContent = '90%';
+
+                const result = await response.json();
+
+                if (result.success) {
+                    uploadedVideoUrl = result.fileUrl;
+                    progressFill.style.width = '100%';
+                    progressFill.textContent = '100%';
+                    progressText.textContent = '✅ Upload terminé !';
+                    uploadStatus.innerHTML = `✅ <strong>Vidéo uploadée avec succès !</strong><br><a href="${uploadedVideoUrl}" target="_blank" style="color: #00d4ff;">Voir sur Drive</a>`;
+                } else {
+                    throw new Error(result.error || 'Erreur inconnue');
+                }
 
             } catch (error) {
                 console.error('Error uploading file:', error);
@@ -964,27 +833,6 @@
                 progressDiv.style.display = 'none';
             }
         }
-
-        document.getElementById('authorizeBtn').addEventListener('click', handleAuthClick);
-
-        // Load Google scripts dynamically (after functions are defined)
-        function loadGoogleScripts() {
-            // Load Google API (gapi)
-            const gapiScript = document.createElement('script');
-            gapiScript.src = 'https://apis.google.com/js/api.js';
-            gapiScript.onload = gapiLoaded;
-            gapiScript.onerror = () => console.warn('Google API script failed to load');
-            document.head.appendChild(gapiScript);
-
-            // Load Google Identity Services (gis)
-            const gisScript = document.createElement('script');
-            gisScript.src = 'https://accounts.google.com/gsi/client';
-            gisScript.onload = gisLoaded;
-            gisScript.onerror = () => console.warn('Google Identity Services script failed to load');
-            document.head.appendChild(gisScript);
-        }
-
-        loadGoogleScripts();
 
         // Initialize rating buttons
         document.querySelectorAll('.rating-group').forEach(group => {
@@ -1301,17 +1149,21 @@
                 const pdfBlob = doc.output('blob');
                 const pdfFileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_Evaluation.pdf';
 
-                // Check if user is authenticated with Google
-                const googleToken = getGoogleToken();
-                if (!googleToken) {
-                    // Not authenticated - just download the PDF
-                    doc.save(pdfFileName);
-                    document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge avec succes !';
-                    document.getElementById('successMessage').style.display = 'block';
+                // ALWAYS download the PDF locally first
+                doc.save(pdfFileName);
+
+                // Also upload PDF to Drive via Apps Script
+                if (APPS_SCRIPT_URL !== 'COLLE_TON_URL_APPS_SCRIPT_ICI') {
+                    try {
+                        await uploadPDFToDrive(pdfBlob, pdfFileName);
+                    } catch (driveError) {
+                        console.warn('Drive upload failed, but PDF was downloaded locally:', driveError);
+                        document.getElementById('successMessage').textContent = '✅ PDF téléchargé ! (échec upload Drive)';
+                        document.getElementById('successMessage').style.display = 'block';
+                    }
                 } else {
-                    // Authenticated - upload to Drive AND download
-                    await uploadPDFToDrive(pdfBlob, pdfFileName);
-                    doc.save(pdfFileName); // Also download locally
+                    document.getElementById('successMessage').textContent = '✅ PDF généré et téléchargé avec succès !';
+                    document.getElementById('successMessage').style.display = 'block';
                 }
 
                 setTimeout(() => {
@@ -1324,49 +1176,39 @@
             }
         });
 
-        // Upload PDF to Google Drive
+        // Upload PDF to Google Drive via Apps Script
         async function uploadPDFToDrive(pdfBlob, fileName) {
             try {
-                // Get access token
-                const token = getGoogleToken();
-                
-                if (!token) {
-                    console.warn('No access token available for PDF upload');
-                    document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge (non connecte a Drive)';
-                    document.getElementById('successMessage').style.display = 'block';
-                    return;
-                }
-
-                const metadata = {
-                    name: fileName,
-                    mimeType: 'application/pdf',
-                    parents: [FOLDER_ID]
-                };
-
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', pdfBlob);
-
-                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: form
+                // Convert blob to base64
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = () => reject(new Error('Erreur lecture PDF'));
+                    reader.readAsDataURL(pdfBlob);
                 });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    const pdfUrl = `https://drive.google.com/file/d/${result.id}/view`;
-                    document.getElementById('successMessage').innerHTML = `✅ PDF genere, telecharge ET enregistre sur Drive !<br><a href="${pdfUrl}" target="_blank" style="color: #00d4ff;">Voir le PDF sur Drive</a>`;
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'uploadPDF',
+                        fileName: fileName,
+                        fileData: base64Data
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const pdfUrl = result.fileUrl;
+                    document.getElementById('successMessage').innerHTML = `✅ PDF généré, téléchargé ET enregistré sur Drive !<br><a href="${pdfUrl}" target="_blank" style="color: #00d4ff;">Voir le PDF sur Drive</a>`;
                     document.getElementById('successMessage').style.display = 'block';
                 } else {
-                    console.error('PDF upload failed:', response.status);
-                    throw new Error('Upload PDF failed');
+                    throw new Error(result.error || 'Erreur upload PDF');
                 }
             } catch (error) {
                 console.error('Error uploading PDF:', error);
-                document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge (erreur upload Drive)';
+                document.getElementById('successMessage').textContent = '✅ PDF téléchargé (erreur upload Drive: ' + error.message + ')';
                 document.getElementById('successMessage').style.display = 'block';
             }
         }
