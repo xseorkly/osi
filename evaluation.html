@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Évaluation Vidéo OSI - Collège</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+    <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" onerror="console.warn('Google API script failed to load')"></script>
+    <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" onerror="console.warn('Google Identity Services script failed to load')"></script>
     <style>
         * {
             margin: 0;
@@ -739,7 +739,12 @@
 
         // Initialize Google API
         function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
+            if (typeof gapi !== 'undefined' && gapi.load) {
+                gapi.load('client', initializeGapiClient);
+            } else {
+                console.warn('Google API (gapi) not available');
+                gapiInited = false;
+            }
         }
 
         async function initializeGapiClient() {
@@ -774,6 +779,10 @@
 
         // Handle authorization
         function handleAuthClick() {
+            if (!tokenClient) {
+                alert('❌ Le service Google n\'est pas disponible. Vérifiez votre connexion internet.');
+                return;
+            }
             tokenClient.callback = async (resp) => {
                 if (resp.error !== undefined) {
                     console.error('Auth error:', resp);
@@ -789,7 +798,7 @@
                 }
             };
 
-            if (gapi.client.getToken() === null) {
+            if (!gapi.client || gapi.client.getToken() === null) {
                 tokenClient.requestAccessToken({prompt: 'consent'});
             } else {
                 tokenClient.requestAccessToken({prompt: ''});
@@ -864,7 +873,7 @@
 
             try {
                 // Get access token
-                const token = accessToken || (gapi.client.getToken() ? gapi.client.getToken().access_token : null);
+                const token = accessToken || (gapi.client && gapi.client.getToken() ? gapi.client.getToken().access_token : null);
                 
                 if (!token) {
                     alert('❌ Vous devez vous connecter avec Google d\'abord');
@@ -1247,7 +1256,7 @@
                 const pdfFileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_Evaluation.pdf';
 
                 // Check if user is authenticated with Google
-                if (gapi.client.getToken() === null && !accessToken) {
+                if ((!gapi.client || gapi.client.getToken() === null) && !accessToken) {
                     // Not authenticated - just download the PDF
                     doc.save(pdfFileName);
                     document.getElementById('successMessage').textContent = '✅ PDF genere et telecharge avec succes !';
@@ -1272,7 +1281,7 @@
         async function uploadPDFToDrive(pdfBlob, fileName) {
             try {
                 // Get access token
-                const token = accessToken || (gapi.client.getToken() ? gapi.client.getToken().access_token : null);
+                const token = accessToken || (gapi.client && gapi.client.getToken() ? gapi.client.getToken().access_token : null);
                 
                 if (!token) {
                     console.warn('No access token available for PDF upload');
