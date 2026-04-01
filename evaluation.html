@@ -142,17 +142,24 @@
         }
 
         .criterion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 10px;
-            flex-wrap: wrap;
         }
 
         .criterion-title {
             font-weight: 600;
             color: #333;
             font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .criterion-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8fbff;
+            border-radius: 5px;
+            font-size: 0.95em;
         }
 
         .rating-group {
@@ -256,6 +263,42 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+        }
+
+        .bareme-section {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border-left: 5px solid #ffc107;
+        }
+
+        .bareme-section h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .bareme-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        .bareme-table th,
+        .bareme-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .bareme-table th {
+            background: #ffc107;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .bareme-table tr:hover {
+            background: #fff8e1;
         }
 
         @media (max-width: 768px) {
@@ -362,43 +405,95 @@
             <div class="section">
                 <h2 class="section-title">📊 Grille d'Évaluation</h2>
 
+                <div class="bareme-section">
+                    <h3>📏 Échelle de notation (1 à 5)</h3>
+                    <table class="bareme-table">
+                        <thead>
+                            <tr>
+                                <th>Note</th>
+                                <th>Appréciation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>5</strong></td>
+                                <td>Excellent</td>
+                            </tr>
+                            <tr>
+                                <td><strong>4</strong></td>
+                                <td>Très satisfaisant</td>
+                            </tr>
+                            <tr>
+                                <td><strong>3</strong></td>
+                                <td>Satisfaisant</td>
+                            </tr>
+                            <tr>
+                                <td><strong>2</strong></td>
+                                <td>Insuffisant</td>
+                            </tr>
+                            <tr>
+                                <td><strong>1</strong></td>
+                                <td>Très insuffisant</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 15px; color: #856404; font-size: 0.95em;">
+                        <strong>Note :</strong> Chaque critère est évalué de 1 à 5, puis pondéré selon son coefficient. La note finale est calculée automatiquement sur 100 points.
+                    </p>
+                </div>
+
                 <!-- AXE 1 -->
                 <div class="axis-header">
                     <h3>🔧 AXE 1 - Démarche d'ingénierie</h3>
-                    <p>40% de la note finale</p>
+                    <p>40% de la note finale (5 critères)</p>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">1. Compréhension du problème</span>
+                        <div class="criterion-title">1. Compréhension du problème</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> Une identification claire et concise du besoin ou du problème à résoudre. La capacité à définir les fonctions principales que le projet doit remplir (l'équivalent d'un cahier des charges simple).
                     </div>
                     <div class="rating-group" data-criterion="1"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">2. Démarche d'ingénierie et de projet</span>
+                        <div class="criterion-title">2. Démarche d'ingénierie et de projet</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> La démonstration d'une méthode de travail structurée (recherche, tests, améliorations itératives). Une bonne organisation de l'équipe avec un partage des tâches efficace et documenté.
                     </div>
                     <div class="rating-group" data-criterion="2"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">3. Pertinence de la solution technique</span>
+                        <div class="criterion-title">3. Pertinence de la solution technique</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> La solution proposée doit être réaliste, réalisable et surtout fonctionnelle. Elle doit répondre directement aux besoins identifiés dans le problème initial.
                     </div>
                     <div class="rating-group" data-criterion="3"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">4. Justification des choix techniques</span>
+                        <div class="criterion-title">4. Justification des choix techniques</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> La capacité à expliquer pourquoi certains composants (capteurs, actionneurs, matériaux) ou solutions ont été choisis par rapport à d'autres. Le jury cherche à comprendre la logique derrière les choix, même simples.
                     </div>
                     <div class="rating-group" data-criterion="4"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">5. Mobilisation des sciences et de la technologie</span>
+                        <div class="criterion-title">5. Mobilisation des sciences et de la technologie</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> L'application correcte et pertinente de concepts scientifiques et technologiques vus en cours pour concevoir et faire fonctionner le système.
                     </div>
                     <div class="rating-group" data-criterion="5"></div>
                 </div>
@@ -406,19 +501,25 @@
                 <!-- AXE 2 -->
                 <div class="axis-header" style="margin-top: 30px;">
                     <h3>💡 AXE 2 - Sens, valeurs et impact</h3>
-                    <p>40% de la note finale</p>
+                    <p>40% de la note finale (2 critères)</p>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">6. Dimension humaine, éthique ou sociétale</span>
+                        <div class="criterion-title">6. Dimension humaine, éthique ou sociétale</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> Avoir réfléchi à l'utilisateur final du projet. Avoir considéré un éventuel impact éthique (ex : collecte de données) ou sociétal (amélioration de la vie quotidienne, accessibilité, environnement).
                     </div>
                     <div class="rating-group" data-criterion="6"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">7. Impact et utilité du projet</span>
+                        <div class="criterion-title">7. Impact et utilité du projet</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> La démonstration que le projet apporte une véritable valeur ajoutée. Il s'agit de prouver que la solution est utile et qu'elle peut réellement améliorer ou résoudre une situation dans la vie réelle.
                     </div>
                     <div class="rating-group" data-criterion="7"></div>
                 </div>
@@ -426,28 +527,44 @@
                 <!-- AXE 3 -->
                 <div class="axis-header" style="margin-top: 30px;">
                     <h3>🎬 AXE 3 - Communication et qualité de la vidéo</h3>
-                    <p>20% de la note finale</p>
+                    <p>20% de la note finale (3 critères)</p>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">8. Clarté et structuration de la vidéo</span>
+                        <div class="criterion-title">8. Clarté et structuration de la vidéo</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> Un plan de vidéo logique et facile à suivre (Introduction du problème, démarche, solution, démonstration, conclusion). Une qualité de réalisation soignée (montage, son, éclairage).
                     </div>
                     <div class="rating-group" data-criterion="8"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">9. Qualité de la communication orale</span>
+                        <div class="criterion-title">9. Qualité de la communication orale</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> Une expression orale claire, dynamique et bien rythmée. Tous les membres de l'équipe doivent participer et parler avec confiance. Le discours doit être adapté au jury.
                     </div>
                     <div class="rating-group" data-criterion="9"></div>
                 </div>
 
                 <div class="criterion">
                     <div class="criterion-header">
-                        <span class="criterion-title">10. Qualité des supports visuels et démonstrations</span>
+                        <div class="criterion-title">10. Qualité des supports visuels et démonstrations</div>
+                    </div>
+                    <div class="criterion-description">
+                        <strong>Attendus :</strong> Des supports visuels (schémas, graphiques, modèles 3D) clairs qui illustrent bien le projet. Une démonstration du prototype fonctionnel (ou de la maquette) qui est efficace et convaincante.
                     </div>
                     <div class="rating-group" data-criterion="10"></div>
+                </div>
+
+                <div class="bareme-section" style="margin-top: 30px;">
+                    <h3>⭐ Mention spéciale "Coup de cœur du jury"</h3>
+                    <p style="color: #856404;">
+                        Une mention possible (hors note) de <strong>"Coup de cœur du jury"</strong> peut être attribuée pour un aspect particulièrement remarquable en Innovation, Valeurs (éthique/sociétale) ou Communication.
+                    </p>
                 </div>
             </div>
 
@@ -496,39 +613,34 @@
         function calculateScore() {
             if (Object.keys(ratings).length < 10) return;
 
-            // Coefficients selon le document
-            const axe1Criteria = {1: 1.5, 2: 2, 3: 2, 4: 1.5, 5: 1};
-            const axe2Criteria = {6: 2, 7: 1.5};
-            const axe3Criteria = {8: 2, 9: 1.5, 10: 1.5};
-
+            // Calcul SIMPLIFIÉ sans coefficients individuels
+            
             // Calcul AXE 1 (40%)
             let axe1Sum = 0;
-            let axe1MaxSum = 0;
             for (let i = 1; i <= 5; i++) {
-                axe1Sum += (ratings[i] || 0) * axe1Criteria[i];
-                axe1MaxSum += 5 * axe1Criteria[i];
+                axe1Sum += (ratings[i] || 0);
             }
-            const axe1Score = (axe1Sum / axe1MaxSum) * 40;
+            const axe1Max = 5 * 5; // 5 critères × 5 points max
+            const axe1Score = (axe1Sum / axe1Max) * 40;
 
             // Calcul AXE 2 (40%)
             let axe2Sum = 0;
-            let axe2MaxSum = 0;
             for (let i = 6; i <= 7; i++) {
-                axe2Sum += (ratings[i] || 0) * axe2Criteria[i];
-                axe2MaxSum += 5 * axe2Criteria[i];
+                axe2Sum += (ratings[i] || 0);
             }
-            const axe2Score = (axe2Sum / axe2MaxSum) * 40;
+            const axe2Max = 2 * 5; // 2 critères × 5 points max
+            const axe2Score = (axe2Sum / axe2Max) * 40;
 
             // Calcul AXE 3 (20%)
             let axe3Sum = 0;
-            let axe3MaxSum = 0;
             for (let i = 8; i <= 10; i++) {
-                axe3Sum += (ratings[i] || 0) * axe3Criteria[i];
-                axe3MaxSum += 5 * axe3Criteria[i];
+                axe3Sum += (ratings[i] || 0);
             }
-            const axe3Score = (axe3Sum / axe3MaxSum) * 20;
+            const axe3Max = 3 * 5; // 3 critères × 5 points max
+            const axe3Score = (axe3Sum / axe3Max) * 20;
 
-            const finalScore = Math.round(axe1Score + axe2Score + axe3Score);
+            // Note finale sur 100 avec 2 décimales
+            const finalScore = (axe1Score + axe2Score + axe3Score).toFixed(2);
 
             document.getElementById('scoreDisplay').style.display = 'block';
             document.getElementById('finalScore').textContent = `${finalScore} / 100`;
