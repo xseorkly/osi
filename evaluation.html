@@ -705,7 +705,27 @@
         let uploadedVideoUrl = '';
         let selectedFile = null;
 
-        // Upload zone interactions
+        // Helper: POST to Apps Script (handles CORS redirects)
+        function postToAppsScript(payload) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', APPS_SCRIPT_URL);
+                xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+                xhr.onload = function() {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        resolve(result);
+                    } catch (e) {
+                        // Apps Script sometimes returns HTML on error
+                        reject(new Error('Réponse invalide du serveur'));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Erreur réseau'));
+                };
+                xhr.send(JSON.stringify(payload));
+            });
+        }
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
@@ -801,21 +821,12 @@
                 progressText.textContent = 'Envoi vers Google Drive...';
 
                 // Send to Apps Script
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'uploadVideo',
-                        fileName: selectedFile.name,
-                        mimeType: selectedFile.type,
-                        fileData: base64Data
-                    })
+                const result = await postToAppsScript({
+                    action: 'uploadVideo',
+                    fileName: selectedFile.name,
+                    mimeType: selectedFile.type,
+                    fileData: base64Data
                 });
-
-                progressFill.style.width = '90%';
-                progressFill.textContent = '90%';
-
-                const result = await response.json();
 
                 if (result.success) {
                     uploadedVideoUrl = result.fileUrl;
@@ -1187,17 +1198,11 @@
                     reader.readAsDataURL(pdfBlob);
                 });
 
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'uploadPDF',
-                        fileName: fileName,
-                        fileData: base64Data
-                    })
+                const result = await postToAppsScript({
+                    action: 'uploadPDF',
+                    fileName: fileName,
+                    fileData: base64Data
                 });
-
-                const result = await response.json();
 
                 if (result.success) {
                     const pdfUrl = result.fileUrl;
