@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Évaluation Jury OSI - Collège</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+            padding: 40px;
+        }
+
+        h1 { color: #0f3460; text-align: center; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { text-align: center; color: #00d4ff; margin-bottom: 30px; font-size: 1.1em; }
+
+        .back-link {
+            display: inline-block; color: #00d4ff; text-decoration: none;
+            margin-bottom: 20px; font-weight: 600;
+        }
+        .back-link:hover { color: #00ffcc; }
+
+        .section {
+            margin-bottom: 30px; padding: 25px;
+            background: linear-gradient(135deg, #f8fbff 0%, #e8f4f8 100%);
+            border-radius: 10px; border-left: 5px solid #00d4ff;
+        }
+
+        .section-title {
+            color: #0f3460; font-size: 1.4em; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #0f3460; font-weight: 600; }
+        .optional { color: #999; font-weight: normal; font-size: 0.9em; }
+
+        input[type="text"], textarea, select {
+            width: 100%; padding: 12px; border: 2px solid #e0e0e0;
+            border-radius: 8px; font-size: 1em; transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none; border-color: #00d4ff;
+        }
+        textarea { resize: vertical; min-height: 70px; }
+
+        /* ===== Tableau récap ===== */
+        .summary-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
+        .summary-table th, .summary-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .summary-table th { background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); color: white; font-weight: 600; }
+        .summary-table tr:hover { background: #f5fbff; }
+        .summary-table .rank { font-weight: 700; color: #0f3460; text-align: center; width: 50px; }
+        .summary-table .note { font-weight: 700; color: #008fb3; font-size: 1.1em; }
+        .summary-empty { text-align: center; color: #888; padding: 25px; font-style: italic; }
+        .medal { font-size: 1.2em; }
+
+        /* ===== Liste vidéos ===== */
+        .video-item {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 15px; padding: 14px 18px; background: white; border-radius: 8px;
+            border: 2px solid #e0e0e0; margin-bottom: 10px; cursor: pointer;
+            transition: all 0.2s; flex-wrap: wrap;
+        }
+        .video-item:hover { border-color: #00d4ff; transform: translateX(3px); }
+        .video-item.selected { border-color: #00d4ff; background: #e6f9ff; box-shadow: 0 4px 12px rgba(0,212,255,0.25); }
+        .video-meta { display: flex; flex-direction: column; }
+        .video-name { font-weight: 600; color: #0f3460; }
+        .video-sub { font-size: 0.85em; color: #888; }
+        .video-badge {
+            font-size: 0.8em; padding: 4px 10px; border-radius: 12px;
+            background: #fff3cd; color: #856404; font-weight: 600; white-space: nowrap;
+        }
+        .video-badge.new { background: #d4edff; color: #0f3460; }
+
+        .video-player {
+            margin-top: 20px; display: none; border-radius: 10px; overflow: hidden;
+            border: 2px solid #00d4ff;
+        }
+        .video-player.active { display: block; }
+        .video-player iframe { width: 100%; height: 420px; border: none; display: block; }
+
+        /* ===== Critères ===== */
+        .criterion {
+            margin-bottom: 18px; padding: 18px; background: white;
+            border-radius: 8px; border-left: 4px solid #00d4ff;
+        }
+        .criterion-title { font-weight: 600; color: #333; font-size: 1.05em; margin-bottom: 8px; }
+        .criterion-description {
+            color: #666; line-height: 1.55; margin-bottom: 12px; padding: 10px;
+            background: #f8fbff; border-radius: 5px; font-size: 0.92em;
+        }
+        .rating-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .rating-btn {
+            width: 48px; height: 48px; border: 2px solid #e0e0e0; background: white;
+            border-radius: 8px; font-size: 1.15em; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rating-btn:hover { border-color: #00d4ff; transform: translateY(-2px); }
+        .rating-btn.selected {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e; border-color: #00d4ff;
+        }
+
+        .axis-header {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: white; padding: 18px; border-radius: 10px; margin: 20px 0;
+        }
+        .axis-header h3 { font-size: 1.3em; margin-bottom: 4px; }
+
+        .score-display {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            padding: 25px; border-radius: 15px; text-align: center; margin: 25px 0;
+        }
+        .score-display h2 { color: #1a1a2e; font-size: 2.3em; margin-bottom: 6px; }
+        .score-display p { color: #0f3460; font-size: 1.1em; }
+
+        .btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            color: #1a1a2e; padding: 14px 36px; border: none; border-radius: 30px;
+            font-size: 1.05em; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            width: 100%; margin-top: 12px;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-secondary {
+            background: white; color: #0f3460; border: 2px solid #00d4ff; width: auto;
+            padding: 10px 22px; font-size: 0.95em;
+        }
+        .btn-reset { background: linear-gradient(135deg, #ff006e 0%, #ff4d6d 100%); color: white; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+        .checkbox-row input { width: 20px; height: 20px; }
+        .checkbox-row label { margin: 0; }
+
+        .msg { padding: 14px; border-radius: 8px; margin-bottom: 18px; display: none; font-weight: 500; }
+        .msg.error { background: #ff006e; color: white; }
+        .msg.success { background: #00ffcc; color: #1a1a2e; }
+        .msg.info { background: #d4edff; color: #0f3460; }
+        .msg a { color: #0f3460; font-weight: 700; }
+
+        .bareme {
+            background: #fff3cd; padding: 18px 22px; border-radius: 10px;
+            margin: 18px 0; border-left: 5px solid #ffc107; color: #856404; font-size: 0.92em;
+        }
+        .bareme strong { color: #6b5200; }
+
+        .hidden { display: none; }
+
+        .spinner {
+            display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(0,0,0,0.15);
+            border-top-color: #0f3460; border-radius: 50%; animation: spin 0.8s linear infinite;
+            vertical-align: middle; margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.5em; }
+            .video-player iframe { height: 240px; }
+            .summary-table th, .summary-table td { padding: 8px; font-size: 0.85em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour à la page principale</a>
+
+        <h1>⚖️ Évaluation Jury OSI - Collège</h1>
+        <p class="subtitle">Olympiades des Sciences de l'Ingénieur</p>
+
+        <div class="msg error" id="errorMessage"></div>
+        <div class="msg success" id="successMessage"></div>
+        <div class="msg info" id="infoMessage"></div>
+
+        <!-- ===== TABLEAU RÉCAP ===== -->
+        <div class="section">
+            <h2 class="section-title">📊 Tableau des évaluations (moyenne des jurés)</h2>
+            <button type="button" class="btn btn-secondary" id="refreshSummaryBtn">🔄 Actualiser le tableau</button>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vidéo</th>
+                        <th>Note moyenne</th>
+                        <th>Jurés</th>
+                        <th>Détail</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryBody">
+                    <tr><td colspan="5" class="summary-empty">Cliquez sur « Actualiser » pour charger les évaluations…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ===== IDENTITÉ JURÉ ===== -->
+        <div class="section">
+            <h2 class="section-title">🧑‍⚖️ Identité du juré</h2>
+            <div class="form-group">
+                <label>Nom du juré qui évalue *</label>
+                <input type="text" id="juryName" placeholder="Ex : M. Klabi" required>
+            </div>
+            <p style="color:#666; font-size:0.9em;">Ce nom sert à calculer la moyenne entre les différents jurés. Chaque juré note avec son propre nom.</p>
+        </div>
+
+        <!-- ===== CHARGEMENT VIDÉOS ===== -->
+        <div class="section">
+            <h2 class="section-title">📹 Vidéos déposées sur le Drive</h2>
+            <button type="button" class="btn" id="loadVideosBtn">📥 Charger les vidéos depuis le Drive</button>
+            <div id="videoList" style="margin-top:20px;"></div>
+            <div class="video-player" id="videoPlayer">
+                <iframe id="videoFrame" src="" allow="autoplay" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <!-- ===== ÉVALUATION (masqué tant qu'aucune vidéo choisie) ===== -->
+        <div id="evalArea" class="hidden">
+
+            <!-- Infos projet -->
+            <div class="section">
+                <h2 class="section-title">📝 Informations du projet <span class="optional">(facultatif)</span></h2>
+                <div class="form-group">
+                    <label>Nom du projet <span class="optional">(optionnel)</span></label>
+                    <input type="text" id="projectName" placeholder="Ex : EcoMobilité Urbaine">
+                </div>
+                <div class="form-group">
+                    <label>Établissement <span class="optional">(optionnel)</span></label>
+                    <input type="text" id="schoolName" placeholder="Ex : Lycée International d'Istanbul">
+                </div>
+                <div class="form-group">
+                    <label>Professeur encadrant <span class="optional">(optionnel)</span></label>
+                    <input type="text" id="teacherName" placeholder="Ex : M. Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Classe <span class="optional">(optionnel)</span></label>
+                    <input type="text" id="classLevel" placeholder="Ex : 4ème">
+                </div>
+                <div class="form-group">
+                    <label>Élèves de l'équipe <span class="optional">(optionnel)</span></label>
+                    <input type="text" id="studentsList" placeholder="Ex : Alice Martin, Bob Durand…">
+                </div>
+            </div>
+
+            <!-- Grille -->
+            <div class="section">
+                <h2 class="section-title">📊 Grille d'évaluation</h2>
+
+                <div class="bareme">
+                    <strong>Échelle 1 à 5 :</strong> 5 = Excellent · 4 = Très satisfaisant · 3 = Satisfaisant · 2 = Insuffisant · 1 = Très insuffisant.
+                    Chaque critère est noté de 1 à 5, puis pondéré par axe. La note finale est calculée automatiquement sur 100.
+                </div>
+
+                <!-- AXE 1 -->
+                <div class="axis-header">
+                    <h3>🔧 AXE 1 - Démarche d'ingénierie</h3>
+                    <p>40% de la note finale (5 critères)</p>
+                </div>
+
+                <div class="criterion">
+                    <div class="criterion-title">1. Compréhension du problème</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> Une identification claire et concise du besoin ou du problème à résoudre. La capacité à définir les fonctions principales que le projet doit remplir (l'équivalent d'un cahier des charges simple).</div>
+                    <div class="rating-group" data-criterion="1"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">2. Démarche d'ingénierie et de projet</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> La démonstration d'une méthode de travail structurée (recherche, tests, améliorations itératives). Une bonne organisation de l'équipe avec un partage des tâches efficace et documenté.</div>
+                    <div class="rating-group" data-criterion="2"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">3. Pertinence de la solution technique</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> La solution proposée doit être réaliste, réalisable et surtout fonctionnelle. Elle doit répondre directement aux besoins identifiés dans le problème initial.</div>
+                    <div class="rating-group" data-criterion="3"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">4. Justification des choix techniques</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> La capacité à expliquer pourquoi certains composants (capteurs, actionneurs, matériaux) ou solutions ont été choisis par rapport à d'autres. Le jury cherche à comprendre la logique derrière les choix, même simples.</div>
+                    <div class="rating-group" data-criterion="4"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">5. Mobilisation des sciences et de la technologie</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> L'application correcte et pertinente de concepts scientifiques et technologiques vus en cours pour concevoir et faire fonctionner le système.</div>
+                    <div class="rating-group" data-criterion="5"></div>
+                </div>
+
+                <!-- AXE 2 -->
+                <div class="axis-header">
+                    <h3>💡 AXE 2 - Sens, valeurs et impact</h3>
+                    <p>40% de la note finale (2 critères)</p>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">6. Dimension humaine, éthique ou sociétale</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> Avoir réfléchi à l'utilisateur final du projet. Avoir considéré un éventuel impact éthique (ex : collecte de données) ou sociétal (amélioration de la vie quotidienne, accessibilité, environnement).</div>
+                    <div class="rating-group" data-criterion="6"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">7. Impact et utilité du projet</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> La démonstration que le projet apporte une véritable valeur ajoutée. Il s'agit de prouver que la solution est utile et qu'elle peut réellement améliorer ou résoudre une situation dans la vie réelle.</div>
+                    <div class="rating-group" data-criterion="7"></div>
+                </div>
+
+                <!-- AXE 3 -->
+                <div class="axis-header">
+                    <h3>🎬 AXE 3 - Communication et qualité de la vidéo</h3>
+                    <p>20% de la note finale (3 critères)</p>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">8. Clarté et structuration de la vidéo</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> Un plan de vidéo logique et facile à suivre (Introduction du problème, démarche, solution, démonstration, conclusion). Une qualité de réalisation soignée (montage, son, éclairage).</div>
+                    <div class="rating-group" data-criterion="8"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">9. Qualité de la communication orale</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> Une expression orale claire, dynamique et bien rythmée. Tous les membres de l'équipe doivent participer et parler avec confiance. Le discours doit être adapté au jury.</div>
+                    <div class="rating-group" data-criterion="9"></div>
+                </div>
+                <div class="criterion">
+                    <div class="criterion-title">10. Qualité des supports visuels et démonstrations</div>
+                    <div class="criterion-description"><strong>Attendus :</strong> Des supports visuels (schémas, graphiques, modèles 3D) clairs qui illustrent bien le projet. Une démonstration du prototype fonctionnel (ou de la maquette) qui est efficace et convaincante.</div>
+                    <div class="rating-group" data-criterion="10"></div>
+                </div>
+
+                <div class="form-group" style="margin-top:25px;">
+                    <label>Commentaire du juré <span class="optional">(optionnel, figure sur le PDF)</span></label>
+                    <textarea id="juryComment" placeholder="Remarques, points forts, axes d'amélioration…"></textarea>
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="coupDeCoeur">
+                    <label for="coupDeCoeur">⭐ Proposer cette vidéo pour le « Coup de cœur du jury »</label>
+                </div>
+            </div>
+
+            <div class="score-display" id="scoreDisplay" style="display:none;">
+                <h2 id="finalScore">-- / 100</h2>
+                <p>Note finale</p>
+            </div>
+
+            <button type="button" class="btn" id="submitBtn" disabled>
+                📄 Générer le PDF + envoyer au Drive + enregistrer la note
+            </button>
+            <button type="button" class="btn btn-reset" id="resetBtn">
+                🔄 Nouvelle évaluation (changer de vidéo)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ======================= CONFIGURATION =======================
+        // ⚠️ Remplace cette URL par celle de TON déploiement Apps Script (voir Code.gs)
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyO9ZT55TXCjc2Xy-vTBO6RMq5doHpi3rYPW4h5UHEylYWQ7BWb5Hk9GAmzVpsWmCkA8A/exec';
+        // =============================================================
+
+        const ratings = {};
+        let selectedVideo = null; // { id, name }
+        let summaryCache = [];
+
+        // ---------- Messages ----------
+        function showMsg(type, html, autoHide) {
+            const el = document.getElementById(type + 'Message');
+            el.innerHTML = html;
+            el.style.display = 'block';
+            if (type !== 'error') {
+                document.getElementById('errorMessage').style.display = 'none';
+            }
+            if (autoHide) {
+                setTimeout(() => { el.style.display = 'none'; }, autoHide);
+            }
+        }
+        function hideMsg(type) { document.getElementById(type + 'Message').style.display = 'none'; }
+
+        // ---------- Appel Apps Script (text/plain => pas de préflight CORS) ----------
+        async function callScript(payload) {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            return await res.json();
+        }
+
+        // ======================= TABLEAU RÉCAP =======================
+        async function loadSummary() {
+            const btn = document.getElementById('refreshSummaryBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Chargement…';
+            try {
+                const result = await callScript({ action: 'getSummary' });
+                if (result.success) {
+                    summaryCache = result.summary || [];
+                    renderSummary(summaryCache);
+                } else {
+                    showMsg('error', '❌ Erreur tableau : ' + (result.error || 'inconnue'));
+                }
+            } catch (e) {
+                showMsg('error', '❌ Impossible de joindre le serveur (Apps Script). Vérifie l\'URL et le déploiement. Détail : ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔄 Actualiser le tableau';
+            }
+        }
+
+        function renderSummary(summary) {
+            const body = document.getElementById('summaryBody');
+            if (!summary || summary.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="summary-empty">Aucune évaluation enregistrée pour le moment.</td></tr>';
+                return;
+            }
+            const medals = ['🥇', '🥈', '🥉'];
+            body.innerHTML = summary.map((row, i) => {
+                const rank = (i < 3 ? '<span class="medal">' + medals[i] + '</span>' : (i + 1));
+                const detail = (row.jurys && row.jurys.length)
+                    ? row.jurys.join(', ')
+                    : '—';
+                return '<tr>'
+                    + '<td class="rank">' + rank + '</td>'
+                    + '<td>' + escapeHtml(row.videoName) + '</td>'
+                    + '<td class="note">' + Number(row.average).toFixed(2) + ' / 100</td>'
+                    + '<td style="text-align:center;">' + row.count + '</td>'
+                    + '<td style="font-size:0.85em; color:#666;">' + escapeHtml(detail) + '</td>'
+                    + '</tr>';
+            }).join('');
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        document.getElementById('refreshSummaryBtn').addEventListener('click', loadSummary);
+
+        // ======================= LISTE VIDÉOS =======================
+        document.getElementById('loadVideosBtn').addEventListener('click', loadVideos);
+
+        async function loadVideos() {
+            const btn = document.getElementById('loadVideosBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Chargement des vidéos…';
+            const listEl = document.getElementById('videoList');
+            try {
+                const result = await callScript({ action: 'listVideos' });
+                if (!result.success) {
+                    showMsg('error', '❌ Erreur : ' + (result.error || 'inconnue'));
+                    return;
+                }
+                const videos = result.videos || [];
+                // S'assure d'avoir le récap pour afficher "déjà noté par X"
+                if (summaryCache.length === 0) {
+                    try {
+                        const s = await callScript({ action: 'getSummary' });
+                        if (s.success) { summaryCache = s.summary || []; renderSummary(summaryCache); }
+                    } catch (e) { /* silencieux */ }
+                }
+                if (videos.length === 0) {
+                    listEl.innerHTML = '<p class="summary-empty">Aucune vidéo dans le dossier Drive pour l\'instant.</p>';
+                    return;
+                }
+                listEl.innerHTML = videos.map(v => {
+                    const seen = summaryCache.find(r => r.videoId === v.id);
+                    const badge = seen
+                        ? '<span class="video-badge">✓ ' + seen.count + ' juré' + (seen.count > 1 ? 's' : '') + '</span>'
+                        : '<span class="video-badge new">Non évaluée</span>';
+                    const sizeMb = v.size ? (v.size / (1024 * 1024)).toFixed(1) + ' MB' : '';
+                    return '<div class="video-item" data-id="' + v.id + '" data-name="' + escapeHtml(v.name) + '" data-url="' + v.url + '">'
+                        + '<div class="video-meta"><span class="video-name">🎬 ' + escapeHtml(v.name) + '</span>'
+                        + '<span class="video-sub">' + sizeMb + '</span></div>'
+                        + badge + '</div>';
+                }).join('');
+
+                document.querySelectorAll('.video-item').forEach(item => {
+                    item.addEventListener('click', () => selectVideo(item));
+                });
+            } catch (e) {
+                showMsg('error', '❌ Impossible de joindre le serveur (Apps Script). Vérifie l\'URL et le déploiement. Détail : ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📥 Charger les vidéos depuis le Drive';
+            }
+        }
+
+        function selectVideo(item) {
+            document.querySelectorAll('.video-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedVideo = { id: item.dataset.id, name: item.dataset.name };
+
+            // Lecteur intégré
+            const player = document.getElementById('videoPlayer');
+            document.getElementById('videoFrame').src = item.dataset.url;
+            player.classList.add('active');
+
+            // Affiche la zone d'évaluation, remet à zéro les notes
+            resetEvaluation(false);
+            document.getElementById('evalArea').classList.remove('hidden');
+            showMsg('info', '🎬 Vidéo sélectionnée : <strong>' + escapeHtml(selectedVideo.name) + '</strong>. Regarde-la puis remplis la grille.', 6000);
+            document.getElementById('evalArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ======================= GRILLE / NOTATION =======================
+        document.querySelectorAll('.rating-group').forEach(group => {
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'rating-btn';
+                btn.textContent = i;
+                btn.dataset.value = i;
+                btn.onclick = () => selectRating(group, btn);
+                group.appendChild(btn);
+            }
+        });
+
+        function selectRating(group, selectedBtn) {
+            group.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+            selectedBtn.classList.add('selected');
+            ratings[group.dataset.criterion] = parseInt(selectedBtn.dataset.value);
+            calculateScore();
+            checkComplete();
+        }
+
+        function calculateScore() {
+            if (Object.keys(ratings).length < 10) return null;
+            let a1 = 0; for (let i = 1; i <= 5; i++) a1 += (ratings[i] || 0);
+            const axe1 = (a1 / 25) * 40;
+            let a2 = 0; for (let i = 6; i <= 7; i++) a2 += (ratings[i] || 0);
+            const axe2 = (a2 / 10) * 40;
+            let a3 = 0; for (let i = 8; i <= 10; i++) a3 += (ratings[i] || 0);
+            const axe3 = (a3 / 15) * 20;
+            const finalScore = (axe1 + axe2 + axe3).toFixed(2);
+            document.getElementById('scoreDisplay').style.display = 'block';
+            document.getElementById('finalScore').textContent = finalScore + ' / 100';
+            return finalScore;
+        }
+
+        function checkComplete() {
+            const juryOk = document.getElementById('juryName').value.trim() !== '';
+            const allRated = Object.keys(ratings).length === 10;
+            const videoOk = selectedVideo !== null;
+            document.getElementById('submitBtn').disabled = !(juryOk && allRated && videoOk);
+        }
+
+        document.getElementById('juryName').addEventListener('input', checkComplete);
+
+        // ======================= ENREGISTREMENT + PDF =======================
+        document.getElementById('submitBtn').addEventListener('click', submitEvaluation);
+
+        async function submitEvaluation() {
+            hideMsg('error'); hideMsg('success'); hideMsg('info');
+            const btn = document.getElementById('submitBtn');
+
+            if (!selectedVideo) { showMsg('error', '❌ Sélectionne d\'abord une vidéo.'); return; }
+            const juryName = document.getElementById('juryName').value.trim();
+            if (!juryName) { showMsg('error', '❌ Renseigne le nom du juré.'); return; }
+            const finalScore = calculateScore();
+            if (finalScore === null) { showMsg('error', '❌ Note les 10 critères.'); return; }
+            if (typeof window.jspdf === 'undefined') { showMsg('error', '❌ Bibliothèque PDF non chargée (connexion internet ?).'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Traitement en cours…';
+
+            const data = {
+                videoId: selectedVideo.id,
+                videoName: selectedVideo.name,
+                juryName: juryName,
+                projectName: document.getElementById('projectName').value.trim(),
+                schoolName: document.getElementById('schoolName').value.trim(),
+                teacherName: document.getElementById('teacherName').value.trim(),
+                classLevel: document.getElementById('classLevel').value.trim(),
+                students: document.getElementById('studentsList').value.trim(),
+                comment: document.getElementById('juryComment').value.trim(),
+                coupDeCoeur: document.getElementById('coupDeCoeur').checked,
+                ratings: { ...ratings },
+                finalScore: finalScore,
+                date: new Date().toLocaleDateString('fr-FR')
+            };
+
+            try {
+                // 1) Génère le PDF
+                const { blob, fileName } = buildPdf(data);
+
+                // 2) Téléchargement local immédiat (sécurité)
+                const tmpUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = tmpUrl; a.download = fileName; a.click();
+                URL.revokeObjectURL(tmpUrl);
+
+                // 3) Upload PDF sur le Drive
+                btn.innerHTML = '<span class="spinner"></span>Envoi du PDF au Drive…';
+                const base64 = await blobToBase64(blob);
+                const pdfRes = await callScript({ action: 'uploadPDF', fileName: fileName, fileData: base64 });
+                const pdfUrl = (pdfRes && pdfRes.success) ? pdfRes.fileUrl : '';
+
+                // 4) Enregistre la note dans le Sheet centralisé
+                btn.innerHTML = '<span class="spinner"></span>Enregistrement de la note…';
+                data.pdfUrl = pdfUrl;
+                const saveRes = await callScript({ action: 'saveEvaluation', ...data });
+                if (!saveRes.success) throw new Error(saveRes.error || 'échec enregistrement');
+
+                // 5) Rafraîchit le tableau
+                await loadSummary();
+
+                const link = pdfUrl ? '<br><a href="' + pdfUrl + '" target="_blank">Voir le PDF sur le Drive</a>' : '';
+                showMsg('success', '✅ Évaluation enregistrée pour <strong>' + escapeHtml(data.videoName) + '</strong> (' + finalScore + '/100). PDF téléchargé et envoyé au Drive.' + link, 9000);
+                document.querySelector('.summary-table').scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                showMsg('error', '❌ Erreur : ' + e.message + '. Le PDF a normalement été téléchargé localement.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📄 Générer le PDF + envoyer au Drive + enregistrer la note';
+                checkComplete();
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result.split(',')[1]);
+                r.onerror = () => reject(new Error('lecture PDF'));
+                r.readAsDataURL(blob);
+            });
+        }
+
+        const CRITERIA_LABELS = [
+            '1. Comprehension du probleme',
+            '2. Demarche d\'ingenierie et de projet',
+            '3. Pertinence de la solution technique',
+            '4. Justification des choix techniques',
+            '5. Mobilisation des sciences et de la technologie',
+            '6. Dimension humaine, ethique ou societale',
+            '7. Impact et utilite du projet',
+            '8. Clarte et structuration de la video',
+            '9. Qualite de la communication orale',
+            '10. Qualite des supports visuels'
+        ];
+
+        function buildPdf(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 20;
+
+            doc.setFontSize(18); doc.setTextColor(15, 52, 96);
+            doc.text('Fiche d\'evaluation Jury - OSI College', 105, y, { align: 'center' }); y += 12;
+
+            doc.setFontSize(10); doc.setTextColor(100);
+            doc.text('Date : ' + data.date + '   |   Jure : ' + data.juryName, 105, y, { align: 'center' }); y += 14;
+
+            doc.setFontSize(13); doc.setTextColor(0, 140, 179);
+            doc.text('Video : ' + data.videoName, 20, y); y += 10;
+
+            doc.setFontSize(11); doc.setTextColor(0);
+            if (data.projectName) { doc.text('Projet : ' + data.projectName, 20, y); y += 7; }
+            if (data.schoolName) { doc.text('Etablissement : ' + data.schoolName, 20, y); y += 7; }
+            if (data.teacherName) { doc.text('Professeur : ' + data.teacherName, 20, y); y += 7; }
+            if (data.classLevel) { doc.text('Classe : ' + data.classLevel, 20, y); y += 7; }
+            if (data.students) {
+                const sl = doc.splitTextToSize('Eleves : ' + data.students, 170);
+                doc.text(sl, 20, y); y += sl.length * 6;
+            }
+            y += 4;
+
+            doc.setFontSize(13); doc.setTextColor(0, 140, 179);
+            doc.text('Detail des criteres', 20, y); y += 9;
+            doc.setFontSize(10); doc.setTextColor(0);
+            CRITERIA_LABELS.forEach((label, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                doc.text(label + ' : ' + (data.ratings[i + 1] || '-') + '/5', 20, y); y += 7;
+            });
+
+            y += 6;
+            if (y > 250) { doc.addPage(); y = 20; }
+            doc.setFontSize(16); doc.setTextColor(0, 140, 179);
+            doc.text('Note finale : ' + data.finalScore + ' / 100', 105, y, { align: 'center' }); y += 12;
+
+            if (data.coupDeCoeur) {
+                doc.setFontSize(11); doc.setTextColor(133, 100, 4);
+                doc.text('* Propose pour le Coup de coeur du jury', 105, y, { align: 'center' }); y += 10;
+            }
+
+            if (data.comment) {
+                if (y > 250) { doc.addPage(); y = 20; }
+                doc.setFontSize(11); doc.setTextColor(15, 52, 96);
+                doc.text('Commentaire du jure :', 20, y); y += 7;
+                doc.setFontSize(10); doc.setTextColor(60);
+                const cl = doc.splitTextToSize(data.comment, 170);
+                doc.text(cl, 20, y); y += cl.length * 6;
+            }
+
+            const safe = (data.videoName || 'video').replace(/[^a-z0-9]/gi, '_');
+            const fileName = 'Eval_' + safe + '_' + data.juryName.replace(/[^a-z0-9]/gi, '_') + '.pdf';
+            return { blob: doc.output('blob'), fileName: fileName };
+        }
+
+        // ======================= RESET =======================
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (!confirm('Passer à une nouvelle évaluation ? (les notes en cours seront effacées)')) return;
+            resetEvaluation(true);
+        });
+
+        function resetEvaluation(full) {
+            Object.keys(ratings).forEach(k => delete ratings[k]);
+            document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('scoreDisplay').style.display = 'none';
+            document.getElementById('finalScore').textContent = '-- / 100';
+            document.getElementById('projectName').value = '';
+            document.getElementById('schoolName').value = '';
+            document.getElementById('teacherName').value = '';
+            document.getElementById('classLevel').value = '';
+            document.getElementById('studentsList').value = '';
+            document.getElementById('juryComment').value = '';
+            document.getElementById('coupDeCoeur').checked = false;
+            document.getElementById('submitBtn').disabled = true;
+
+            if (full) {
+                selectedVideo = null;
+                document.getElementById('videoPlayer').classList.remove('active');
+                document.getElementById('videoFrame').src = '';
+                document.querySelectorAll('.video-item').forEach(i => i.classList.remove('selected'));
+                document.getElementById('evalArea').classList.add('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // ======================= INIT =======================
+        loadSummary();
+    </script>
+</body>
+</html>
