@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palmarès - Olympiades des Sciences de l'Ingénieur - Collège</title>
+    <style>
+        /* =====================================================================
+           CHARTE GRAPHIQUE — identique au reste du site (navy + cyan, Segoe UI)
+           Couleurs clés : #0a192f / #112240 / #1a365d (fond), #00d4ff / #00ffcc
+           (accents cyan), #0f3460 / #16213e / #1a1a2e (navy), #ffc107 / #ffd700
+           (or, réservé aux distinctions / ambiance cérémonie).
+           ===================================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* ---------- Bandeau logos (repris de index.html) ---------- */
+        .top-banner { background: linear-gradient(to right, #1a1a2e, #16213e, #0f3460); padding: 15px 0; border-bottom: 3px solid #00d4ff; }
+        .logos-container { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .logo-item { height: 80px; width: auto; object-fit: contain; transition: transform 0.3s; }
+        .logo-item:hover { transform: scale(1.05); }
+        .logo-aefe-main { height: 100px; }
+
+        /* ---------- En-tête / navigation (repris de index.html) ---------- */
+        header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        nav { display: flex; gap: 25px; flex-wrap: wrap; align-items: center; }
+        nav a { color: #00d4ff; text-decoration: none; font-weight: 600; transition: color 0.3s; }
+        nav a:hover { color: #00ffcc; }
+        nav a.nav-btn { background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%); color: #1a1a2e; padding: 8px 20px; border-radius: 20px; }
+
+        /* ---------- Hero "cérémonie" ---------- */
+        .hero {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+            padding: 70px 0 60px; text-align: center; position: relative; overflow: hidden;
+        }
+        /* petites "étincelles" décoratives (CSS only, légères) */
+        .hero::before, .hero::after {
+            content: "✦"; position: absolute; color: rgba(255, 215, 0, 0.35); font-size: 2em;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        .hero::before { top: 30px; left: 12%; }
+        .hero::after { bottom: 40px; right: 14%; animation-delay: 1.2s; }
+        @keyframes twinkle { 0%,100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        .hero .trophy { font-size: 3.5em; margin-bottom: 10px; animation: fadeInDown 1s; }
+        .hero h1 {
+            font-size: 2.6em; color: #00d4ff; margin-bottom: 18px; animation: fadeInDown 1s;
+            text-shadow: 0 0 22px rgba(0, 212, 255, 0.5);
+        }
+        .hero-subtitle { font-size: 1.25em; color: #00ffcc; margin-bottom: 22px; }
+        .hero-intro {
+            max-width: 760px; margin: 0 auto; color: #cfe9f5; font-size: 1.08em;
+            background: rgba(255,255,255,0.05); padding: 20px 25px; border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.25); animation: fadeIn 1.5s;
+        }
+
+        /* ---------- Section générique ---------- */
+        section { background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); margin: 30px 0; padding: 50px 0; border-radius: 10px; box-shadow: 0 5px 20px rgba(0, 212, 255, 0.1); }
+        section h2 { font-size: 2em; color: #0f3460; margin-bottom: 12px; text-align: center; text-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+        .section-lead { text-align: center; color: #555; max-width: 760px; margin: 0 auto 40px; font-size: 1.05em; }
+
+        /* ---------- Grille des prix ---------- */
+        .awards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 30px; }
+
+        .award-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border-radius: 14px; overflow: hidden; box-shadow: 0 4px 18px rgba(0, 212, 255, 0.12);
+            border: 1px solid #e3eef5; display: flex; flex-direction: column;
+            transition: transform 0.3s, box-shadow 0.3s; animation: fadeIn 1s;
+        }
+        .award-card:hover { transform: translateY(-6px); box-shadow: 0 14px 34px rgba(0, 212, 255, 0.28); }
+
+        /* Bandeau supérieur = nom du prix */
+        .award-badge {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: #fff; padding: 16px 20px; font-weight: 700; font-size: 1.12em;
+            display: flex; align-items: center; gap: 10px; line-height: 1.3;
+        }
+        .award-badge .medal { font-size: 1.3em; }
+
+        /* Carte vidéo (miniature + bouton ▶) */
+        .video-card { position: relative; cursor: pointer; background: #0a192f; aspect-ratio: 16 / 9; overflow: hidden; }
+        .video-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s, filter 0.3s; }
+        .video-card:hover img { transform: scale(1.06); filter: brightness(0.7); }
+        .video-card .fallback {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); color: #00d4ff; font-size: 0.95em; text-align: center; padding: 20px;
+        }
+        .play-overlay {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(10, 25, 47, 0.25); transition: background 0.3s;
+        }
+        .video-card:hover .play-overlay { background: rgba(10, 25, 47, 0.45); }
+        .play-btn {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6); transition: transform 0.3s;
+        }
+        .video-card:hover .play-btn { transform: scale(1.12); }
+        .play-btn::after { content: "▶"; color: #0f3460; font-size: 1.6em; margin-left: 4px; }
+        .video-duration-tag {
+            position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7);
+            color: #fff; padding: 3px 9px; border-radius: 6px; font-size: 0.8em; font-weight: 600;
+        }
+
+        /* Corps de la carte */
+        .award-body { padding: 22px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        .project-title { font-size: 1.15em; font-weight: 700; color: #0f3460; }
+        .project-title .tag { display: inline-block; font-size: 0.7em; font-weight: 600; color: #008fb3; background: #e6f9ff; padding: 2px 10px; border-radius: 12px; margin-left: 6px; vertical-align: middle; }
+        .award-desc { color: #5a6b78; font-size: 0.95em; flex: 1; }
+
+        /* Bloc établissement */
+        .school-block { background: #f4fbff; border-left: 4px solid #00d4ff; border-radius: 8px; padding: 12px 14px; }
+        .school-name { font-weight: 700; color: #0f3460; font-size: 1em; }
+        .school-meta { color: #6b7a86; font-size: 0.85em; margin-top: 3px; display: flex; align-items: flex-start; gap: 5px; }
+
+        .watch-btn {
+            margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%); color: #1a1a2e;
+            padding: 12px 20px; border: none; border-radius: 25px; font-weight: 700; font-size: 1em;
+            cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; width: 100%;
+        }
+        .watch-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 212, 255, 0.45); }
+
+        /* ---------- Carte GRAND PRIX (mise en avant or) ---------- */
+        .award-card.grand-prix { border: 2px solid #ffd700; box-shadow: 0 6px 26px rgba(255, 215, 0, 0.3); grid-column: 1 / -1; }
+        .award-card.grand-prix .award-badge { background: linear-gradient(135deg, #b8860b 0%, #ffd700 55%, #b8860b 100%); color: #1a1a2e; font-size: 1.3em; justify-content: center; letter-spacing: 0.5px; }
+        .award-card.grand-prix .play-btn { background: linear-gradient(135deg, #ffd700 0%, #ffed8a 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6); }
+        .award-card.grand-prix .play-btn::after { color: #7a5c00; }
+        .award-card.grand-prix .watch-btn { background: linear-gradient(135deg, #b8860b 0%, #ffd700 100%); }
+        .award-card.grand-prix .grand-inner { display: grid; grid-template-columns: 1.1fr 1fr; }
+        @media (max-width: 720px) { .award-card.grand-prix .grand-inner { grid-template-columns: 1fr; } }
+
+        /* ---------- Modale vidéo ---------- */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(10, 25, 47, 0.88);
+            z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+            animation: fadeIn 0.25s;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #0f3460; border-radius: 14px; max-width: 900px; width: 100%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.6); border: 1px solid #00d4ff; animation: fadeInDown 0.3s; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; color: #fff; gap: 12px; }
+        .modal-title { font-weight: 700; font-size: 1.05em; }
+        .modal-close { background: none; border: none; color: #00d4ff; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s; }
+        .modal-close:hover { color: #00ffcc; }
+        .modal-video { position: relative; aspect-ratio: 16 / 9; background: #000; }
+        .modal-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+        .modal-foot { padding: 12px 18px; }
+        .modal-foot a { color: #00ffcc; text-decoration: none; font-size: 0.9em; font-weight: 600; }
+        .modal-foot a:hover { text-decoration: underline; }
+
+        /* ---------- Bas de page félicitations ---------- */
+        .congrats { background: linear-gradient(135deg, #00d4ff 0%, #00ffcc 100%); color: #1a1a2e; border-radius: 15px; padding: 40px; text-align: center; margin: 40px 0; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3); }
+        .congrats h3 { font-size: 1.8em; margin-bottom: 14px; }
+        .congrats p { font-size: 1.1em; max-width: 760px; margin: 0 auto 10px; }
+
+        footer { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); color: white; text-align: center; padding: 30px 0; margin-top: 50px; }
+
+        /* ---------- Animations (reprises de index.html) ---------- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.9em; }
+            nav { flex-direction: column; gap: 10px; }
+            .logo-item { height: 60px; }
+            .logo-aefe-main { height: 80px; }
+            .logos-container { gap: 15px; }
+            .awards-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== Bandeau logos ===== -->
+    <div class="top-banner">
+        <div class="logos-container">
+            <img src="https://imgur.com/yli5tGD.png" alt="AEFE" class="logo-item logo-aefe-main">
+            <img src="https://imgur.com/1SRl53m.png" alt="IRF Europe Centrale et Orientale" class="logo-item">
+            <img src="https://imgur.com/xKf3PGt.png" alt="IRF Europe Ibérique" class="logo-item">
+            <img src="https://imgur.com/aGMldN2.png" alt="IRF Europe du Nord-Ouest et Scandinave" class="logo-item">
+            <img src="https://imgur.com/aGMldN2.png" alt="IRF Europe du Sud Est" class="logo-item">
+        </div>
+    </div>
+
+    <!-- ===== En-tête / navigation ===== -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h2 style="color: #00d4ff;">Olympiades des Sciences de l'Ingénieur</h2>
+                    <p style="color: #00ffcc;">Zones ZESE - ZECO - ZENOS - ZEI</p>
+                </div>
+                <nav>
+                    <a href="index.html">Accueil</a>
+                    <a href="index.html#evaluation">Évaluation</a>
+                    <a href="index.html#ressources">Ressources</a>
+                    <a href="palmares.html" class="nav-btn">🏆 Palmarès</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== Hero cérémonie ===== -->
+    <section class="hero" style="border-radius:0; margin:0;">
+        <div class="container">
+            <div class="trophy">🏆</div>
+            <h1>Palmarès des Olympiades</h1>
+            <p class="hero-subtitle">Cérémonie de remise des prix — Niveau Collège</p>
+            <p class="hero-intro">
+                Ces prix récompensent la <strong>créativité</strong>, l'<strong>ingéniosité</strong>,
+                l'<strong>engagement</strong> et la <strong>qualité des solutions</strong> imaginées par les
+                élèves autour du thème « Mieux vivre la ville ». Chaque équipe a relevé le défi de concevoir,
+                tester et présenter un projet d'ingénierie complet. Découvrez les établissements et les
+                réalisations distingués par le jury.
+            </p>
+        </div>
+    </section>
+
+    <!-- ===== Grille des prix (générée par JS) ===== -->
+    <section id="palmares">
+        <div class="container">
+            <h2>Les lauréats 2026</h2>
+            <p class="section-lead">7 distinctions attribuées à 5 établissements du réseau AEFE, à travers l'Allemagne, l'Espagne, la Pologne, la Lettonie et l'Italie.</p>
+            <div class="awards-grid" id="awardsGrid"></div>
+        </div>
+    </section>
+
+    <!-- ===== Félicitations ===== -->
+    <section style="background:none; box-shadow:none; padding:0;">
+        <div class="container">
+            <div class="congrats">
+                <h3>👏 Félicitations à toutes et à tous !</h3>
+                <p>Bravo à l'ensemble des élèves participants : votre curiosité, votre travail d'équipe et votre inventivité font la réussite de ces Olympiades.</p>
+                <p><strong>Un grand merci aux établissements engagés</strong> et à leurs enseignants, qui font vivre le goût des sciences de l'ingénieur et accompagnent les talents de demain.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Modale vidéo ===== -->
+    <div class="modal-overlay" id="videoModal" role="dialog" aria-modal="true">
+        <div class="modal-box">
+            <div class="modal-head">
+                <span class="modal-title" id="modalTitle">Vidéo du projet</span>
+                <button class="modal-close" id="modalClose" aria-label="Fermer">&times;</button>
+            </div>
+            <div class="modal-video" id="modalVideo"><!-- iframe injecté à l'ouverture --></div>
+            <div class="modal-foot"><a id="modalDriveLink" href="#" target="_blank" rel="noopener">↗ Ouvrir la vidéo dans Google Drive</a></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Olympiades des Sciences de l'Ingénieur - Collège</p>
+            <p>AEFE - Zones ZESE, ZECO, ZENOS, ZEI</p>
+        </div>
+    </footer>
+
+    <script>
+        /* =====================================================================
+           DONNÉES DU PALMARÈS
+           Pour modifier : édite simplement ce tableau (un objet = un prix).
+           - prize       : nom du prix
+           - medal       : emoji affiché à côté du nom
+           - grandPrize  : true uniquement pour le Grand Prix (mise en avant or)
+           - project     : nom du projet / de l'équipe
+           - category    : petite étiquette (type de projet)
+           - desc        : court texte valorisant
+           - school      : { name, city, country, flag, address }
+           - driveId     : identifiant du fichier Google Drive (entre /d/ et /view)
+           ===================================================================== */
+        const AWARDS = [
+            {
+                prize: "Grand Prix des Olympiades SI",
+                medal: "🏆",
+                grandPrize: true,
+                project: "Düss-Aspibelle",
+                category: "Ramassage de déchets autonome",
+                desc: "La distinction suprême du concours. Elle salue l'excellence d'ensemble : une démarche d'ingénierie rigoureuse, une solution innovante et une réalisation aboutie, au service d'une ville plus propre.",
+                school: { name: "Lycée français international Simone-Veil", city: "Düsseldorf", country: "Allemagne", flag: "🇩🇪", address: "Graf-Recke-Straße 220, 40237 Düsseldorf" },
+                driveId: "1NKdBoiITxxEQV5cR3yw1z9XIr7laWvzh"
+            },
+            {
+                prize: "Prix de l'innovation",
+                medal: "💡",
+                project: "Aerotram",
+                category: "Mobilité / déplacement",
+                desc: "Récompense l'audace créative et l'originalité de la solution : une idée qui sort des sentiers battus pour repenser la mobilité en ville.",
+                school: { name: "Lycée français international d'Ibiza", city: "Ibiza (San Jordi)", country: "Espagne", flag: "🇪🇸", address: "Can Llambies, Carretera San José km 2,3, San Jordi" },
+                driveId: "1LjWykGVWp9Q8yimnhB6PrViMFfmoFmpW"
+            },
+            {
+                prize: "Prix de l'impact",
+                medal: "🌍",
+                project: "Airbox",
+                category: "Aération des salles de classe",
+                desc: "Distingue un projet à fort bénéfice concret pour la collectivité : une solution qui améliore directement la qualité de l'air et le quotidien des élèves.",
+                school: { name: "Lycée international français de Varsovie René-Goscinny", city: "Varsovie", country: "Pologne", flag: "🇵🇱", address: "ul. Walecznych 4/6, 03-916 Varsovie" },
+                driveId: "10UcsSmXBkBXrBFbEDLGG-G3hIOtks5o8"
+            },
+            {
+                prize: "Prix Santé, sécurité et vie quotidienne",
+                medal: "🛡️",
+                project: "Trotiannette",
+                category: "Sécurité & mobilité",
+                desc: "Valorise une solution qui protège et facilite le quotidien des citadins, en plaçant la sécurité et le bien-être au cœur de la conception.",
+                school: { name: "Lycée français international Jules-Verne de Riga", city: "Riga", country: "Lettonie", flag: "🇱🇻", address: "Patversmes iela 20, LV-1005 Riga" },
+                driveId: "1YqnE5uf6EEYnK7jJ7SNlPgUUrCHVJa-E"
+            },
+            {
+                prize: "Prix de la faisabilité",
+                medal: "🛠️",
+                project: "Ecotrack — Empreinte Verte",
+                category: "Application logicielle",
+                desc: "Salue le réalisme technique et la solidité d'un projet réellement réalisable, du concept jusqu'à une mise en œuvre crédible.",
+                school: { name: "Lycée français international Simone-Veil", city: "Düsseldorf", country: "Allemagne", flag: "🇩🇪", address: "Graf-Recke-Straße 220, 40237 Düsseldorf" },
+                driveId: "19jSPNBa0hyYu0RycQR_mk0BWF75A2clh"
+            },
+            {
+                prize: "Prix Santé et bien-être",
+                medal: "💚",
+                project: "Orbyn",
+                category: "Santé & bien-être",
+                desc: "Met à l'honneur une attention particulière au confort, à la santé et au bien-être des usagers dans l'environnement urbain.",
+                school: { name: "Lycée français international Jules-Verne de Riga", city: "Riga", country: "Lettonie", flag: "🇱🇻", address: "Patversmes iela 20, LV-1005 Riga" },
+                driveId: "1WqYyzuoecIi5Chdhoey7NIrEhqrKKHXB"
+            },
+            {
+                prize: "Prix de la démarche d'ingénierie",
+                medal: "⚙️",
+                project: "Techno Gardien Vélo",
+                category: "Système anti-vol de vélo",
+                desc: "Récompense la rigueur méthodologique : de la recherche aux tests, jusqu'aux améliorations itératives qui caractérisent une vraie démarche d'ingénieur.",
+                school: { name: "École française de Naples Alexandre-Dumas", city: "Naples", country: "Italie", flag: "🇮🇹", address: "Via Francesco Crispi 86, 80121 Naples" },
+                driveId: "1VSsEn-daTtqN9GKL6xKWq89Tj_LQ7yqL"
+            }
+        ];
+
+        /* --- Helpers Drive --- */
+        // Miniature de la vidéo (image légère, chargée en lazy)
+        const thumbUrl = id => `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+        // Lecteur intégré (utilisé seulement dans la modale → performance)
+        const previewUrl = id => `https://drive.google.com/file/d/${id}/preview`;
+        // Lien d'ouverture directe
+        const viewUrl = id => `https://drive.google.com/file/d/${id}/view`;
+
+        const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        /* --- Construction d'une carte --- */
+        function buildCard(a, index) {
+            const card = document.createElement('div');
+            card.className = 'award-card' + (a.grandPrize ? ' grand-prix' : '');
+
+            const videoHtml = `
+                <div class="video-card" data-index="${index}">
+                    <img src="${thumbUrl(a.driveId)}" alt="Aperçu de ${esc(a.project)}" loading="lazy"
+                         onerror="this.outerHTML='<div class=&quot;fallback&quot;>🎬 Aperçu indisponible<br>Cliquez pour visionner</div>'">
+                    <div class="play-overlay"><div class="play-btn"></div></div>
+                </div>`;
+
+            const bodyHtml = `
+                <div class="award-body">
+                    <div class="project-title">${esc(a.project)} <span class="tag">${esc(a.category)}</span></div>
+                    <p class="award-desc">${esc(a.desc)}</p>
+                    <div class="school-block">
+                        <div class="school-name">${a.school.flag} ${esc(a.school.name)}</div>
+                        <div class="school-meta">📍 <span>${esc(a.school.city)}, ${esc(a.school.country)} — ${esc(a.school.address)}</span></div>
+                    </div>
+                    <button class="watch-btn" data-index="${index}">▶ Voir la vidéo</button>
+                </div>`;
+
+            if (a.grandPrize) {
+                card.innerHTML = `
+                    <div class="award-badge"><span class="medal">${a.medal}</span> GRAND PRIX — ${esc(a.prize).replace('Grand Prix des Olympiades SI','des Olympiades SI Collège')}</div>
+                    <div class="grand-inner">${videoHtml}${bodyHtml}</div>`;
+            } else {
+                card.innerHTML = `
+                    <div class="award-badge"><span class="medal">${a.medal}</span> ${esc(a.prize)}</div>
+                    ${videoHtml}${bodyHtml}`;
+            }
+            return card;
+        }
+
+        /* --- Rendu de la grille --- */
+        const grid = document.getElementById('awardsGrid');
+        AWARDS.forEach((a, i) => grid.appendChild(buildCard(a, i)));
+
+        /* --- Gestion de la modale (l'iframe n'est créée qu'à l'ouverture) --- */
+        const modal = document.getElementById('videoModal');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalLink = document.getElementById('modalDriveLink');
+
+        function openModal(index) {
+            const a = AWARDS[index];
+            modalTitle.textContent = a.prize + ' — ' + a.project;
+            modalLink.href = viewUrl(a.driveId);
+            // Injection de l'iframe au moment du clic (pas avant) = pages légères
+            modalVideo.innerHTML = `<iframe src="${previewUrl(a.driveId)}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            modalVideo.innerHTML = ''; // stoppe la lecture et libère la ressource
+            document.body.style.overflow = '';
+        }
+
+        // Clic sur une carte vidéo ou sur le bouton "Voir la vidéo"
+        document.addEventListener('click', e => {
+            const trigger = e.target.closest('.video-card, .watch-btn');
+            if (trigger && trigger.dataset.index !== undefined) {
+                openModal(parseInt(trigger.dataset.index, 10));
+            }
+        });
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    </script>
+</body>
+</html>
